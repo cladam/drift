@@ -1,5 +1,5 @@
 main_branch_name: main
-release_url_template: https://github.com/owner/repository/releases/tag/{{version}}
+release_url_template: https://github.com/cladam/drift/releases/tag/{{version}}
 stale_branch_threshold_days: 1
 monorepo:
   enabled: false
