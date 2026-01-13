@@ -1,0 +1,43 @@
+# Android Studio / IntelliJ
+*.iml
+.gradle
+/local.properties
+.idea
+.idea/gradle.xml
+.idea/misc.xml
+/.idea/*
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+
+Project Specification-1.0.md
+
+# Build files
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Local properties (sensitive data)
+local.properties
+keystore.properties
+
+# Keystore files (very sensitive)
+app/ilseon-keystore.jks
+*.jks
+*.keystore
+
+# Google services file (if you use it)
+google-services.json
+
+# Private source code for hybrid model
+# ------------------------------------
+# Add paths to your proprietary files and directories here.
+# For example:
+# /app/src/main/java/com/ilseon/billing/
+# /app/src/main/java/com/ilseon/secrets/Secrets.kt
+/revenuecat.properties
