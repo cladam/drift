@@ -22,6 +22,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,6 +32,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.ilseon.drift.data.DriftLog
+import com.ilseon.drift.ui.theme.BorderQuiet
 import com.ilseon.drift.ui.theme.CustomTextPrimary
 import com.ilseon.drift.ui.theme.LightGrey
 import com.ilseon.drift.ui.theme.MutedDetail
@@ -43,10 +46,11 @@ import com.ilseon.drift.ui.theme.StatusUrgent
 @Composable
 fun CheckInModal(
     onDismissRequest: () -> Unit,
-    onLog: (Float, String) -> Unit
+    onLog: (Float, String) -> Unit,
+    latestCheckIn: DriftLog?,
 ) {
-    var sliderPosition by remember { mutableStateOf(0.5f) }
-    var energyLevel by remember { mutableStateOf("MEDIUM") }
+    var sliderPosition by remember { mutableFloatStateOf(latestCheckIn?.moodScore ?: 0.5f) }
+    var energyLevel by remember { mutableStateOf(latestCheckIn?.energyLevel ?: "MEDIUM") }
     val sliderTrackGradient = Brush.horizontalGradient(colors = listOf(StatusUrgent, StatusMedium))
 
     Dialog(onDismissRequest = { onDismissRequest() }) {
@@ -80,8 +84,8 @@ fun CheckInModal(
                         Box(
                             modifier = Modifier
                                 .size(24.dp)
-                                .border(2.dp, MutedDetail, CircleShape)
-                                .background(MutedTeal, CircleShape)
+                                .border(2.dp, BorderQuiet, CircleShape)
+                                .background(MutedDetail, CircleShape)
                         )
                     }
                 )

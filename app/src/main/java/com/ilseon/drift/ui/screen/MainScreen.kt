@@ -15,9 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Bed
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.ilseon.drift.data.DriftLog
 import com.ilseon.drift.ui.components.CheckInModal
 import com.ilseon.drift.ui.components.EnergyOrb
 import com.ilseon.drift.ui.theme.CustomTextPrimary
@@ -50,17 +53,18 @@ import com.ilseon.drift.ui.viewmodels.CheckInViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(checkInViewModel: CheckInViewModel) {
+    val latestCheckIn: DriftLog? by checkInViewModel.latestCheckIn.collectAsState()
     var showCheckInModal by remember { mutableStateOf(false) }
-    var orbColor by remember { mutableStateOf(StatusMedium) }
+    val orbColor = latestCheckIn?.moodScore?.let { lerp(StatusUrgent, StatusMedium, it) } ?: StatusMedium
 
     if (showCheckInModal) {
         CheckInModal(
             onDismissRequest = { showCheckInModal = false },
             onLog = { sliderValue, energyLevel ->
                 checkInViewModel.insert(sliderValue, energyLevel)
-                orbColor = lerp(StatusUrgent, StatusMedium, sliderValue)
                 showCheckInModal = false
-            }
+            },
+            latestCheckIn = latestCheckIn,
         )
     }
 
@@ -91,13 +95,13 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    DataCard(title = "Last Sleep", value = "8h 15m", modifier = Modifier.weight(1f))
+                    DataCard(title = "Last Sleep", value = "8h 15m", icon = Icons.Default.Bed, modifier = Modifier.weight(1f))
                     DataCard(title = "HRV", value = "62ms", icon = Icons.Default.Favorite, modifier = Modifier.weight(1f))
                 }
                 DataCard(
                     title = "Analytics",
                     value = "7d trend",
-                    icon = Icons.Default.ShowChart,
+                    icon = Icons.AutoMirrored.Filled.ShowChart,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
