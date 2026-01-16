@@ -103,6 +103,12 @@ tasks.register("printVersionCodeAndName") {
 }
 
 dependencies {
+    implementation("androidx.camera:camera-core:1.5.2")
+    implementation("androidx.camera:camera-camera2:1.5.2")
+    implementation("androidx.camera:camera-lifecycle:1.5.2")
+    implementation("androidx.camera:camera-view:1.5.2")
+    implementation("androidx.concurrent:concurrent-futures-ktx:1.3.0")
+    implementation("com.google.guava:guava:33.5.0-android")
     implementation("androidx.health.connect:connect-client:1.1.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")

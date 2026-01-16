@@ -20,10 +20,11 @@ class CheckInViewModel(private val repository: DriftRepository) : ViewModel() {
             initialValue = null
         )
 
-    fun insert(moodScore: Float, energyLevel: String) = viewModelScope.launch {
+    fun insert(moodScore: Float, energyLevel: String, hrv: Double? = null) = viewModelScope.launch {
         val newLog = DriftLog(
             moodScore = moodScore,
-            energyLevel = energyLevel
+            energyLevel = energyLevel,
+            hrvValue = hrv
         )
         repository.insert(newLog)
     }

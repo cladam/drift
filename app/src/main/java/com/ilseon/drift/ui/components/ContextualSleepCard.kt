@@ -59,7 +59,7 @@ fun ContextualSleepCard(
                     Icon(Icons.Default.Bedtime, contentDescription = null, tint = MutedTeal) //
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        "No sleep data found. Tap to log.",
+                        "No sleep data found.",
                         color = CustomTextSecondary,
                         style = MaterialTheme.typography.bodyMedium
                     )

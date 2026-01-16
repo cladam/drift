@@ -1,5 +1,10 @@
 package com.ilseon.drift.ui.screen
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,14 +22,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,14 +39,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.ilseon.drift.data.DriftLog
 import com.ilseon.drift.ui.components.AnalyticsCard
 import com.ilseon.drift.ui.components.CheckInModal
 import com.ilseon.drift.ui.components.ContextualPulseCard
 import com.ilseon.drift.ui.components.ContextualSleepCard
-import com.ilseon.drift.ui.components.DataCard
 import com.ilseon.drift.ui.components.EnergyOrb
+import com.ilseon.drift.ui.components.calculateRmssdFromIntervals
 import com.ilseon.drift.ui.theme.CustomTextPrimary
 import com.ilseon.drift.ui.theme.DarkGrey
 import com.ilseon.drift.ui.theme.LightGrey
@@ -48,31 +57,98 @@ import com.ilseon.drift.ui.theme.StatusHigh
 import com.ilseon.drift.ui.theme.StatusMedium
 import com.ilseon.drift.ui.theme.StatusUrgent
 import com.ilseon.drift.ui.viewmodels.CheckInViewModel
+import kotlinx.coroutines.delay
+import kotlin.compareTo
+import kotlin.text.clear
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(checkInViewModel: CheckInViewModel) {
     val latestCheckIn: DriftLog? by checkInViewModel.latestCheckIn.collectAsState()
     var showCheckInModal by remember { mutableStateOf(false) }
+    var newHrvValue by remember { mutableStateOf<Double?>(null) }
     var moodScore by remember { mutableFloatStateOf(latestCheckIn?.moodScore ?: 0.5f) }
     val weeklyTrend by checkInViewModel.weeklyTrend.collectAsState()
+    var isMeasuringHrv by remember { mutableStateOf(false) }
+    val pulseTimestamps = remember { mutableStateListOf<Long>() }
+    val context = LocalContext.current
+
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            isMeasuringHrv = true
+        }
+    }
 
     val orbColor = if (moodScore > 0.5f) {
         lerp(StatusMedium, StatusHigh, (moodScore - 0.5f) * 2)
     } else {
         lerp(StatusUrgent, StatusMedium, moodScore * 2)
     }
+    var firstPulseTime by remember { mutableStateOf<Long?>(null) }
+    var stablePulseStartIndex by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(firstPulseTime) {
+        if (isMeasuringHrv && firstPulseTime != null) {
+            delay(20000)
+
+            // Capture data FIRST - make a defensive copy
+            val timestamps = pulseTimestamps.toList()
+            val pulseCount = timestamps.size
+
+            Log.d("HRV", "Total pulses: $pulseCount, Stable count: ${pulseCount - 1}")
+
+            if (pulseCount > 5) {
+                val stablePulses = timestamps.drop(1)
+                val intervals = stablePulses.zipWithNext { a, b -> b - a }
+                Log.d("HRV", "Raw intervals (${intervals.size}): $intervals")
+
+                val validIntervals = intervals.filter { it in 550L..1200L }
+                Log.d("HRV", "Valid intervals (${validIntervals.size}): $validIntervals")
+
+                if (validIntervals.size >= 4) {
+                    newHrvValue = calculateRmssdFromIntervals(validIntervals)
+                    Log.d("HRV", "RMSSD: $newHrvValue ms")
+                    showCheckInModal = true
+                } else {
+                    Log.d("HRV", "Not enough valid intervals: ${validIntervals.size}")
+                }
+            } else {
+                Log.d("HRV", "Not enough pulses: $pulseCount")
+            }
+
+            // Stop measuring LAST, after all processing is done
+            isMeasuringHrv = false
+        }
+    }
+
+// Simplify this - only clear on START of measurement
+    LaunchedEffect(isMeasuringHrv) {
+        if (isMeasuringHrv) {
+            pulseTimestamps.clear()
+            firstPulseTime = null
+            stablePulseStartIndex = 0
+        }
+        // Remove the else branch that was clearing data
+    }
+
 
     if (showCheckInModal) {
         CheckInModal(
-            onDismissRequest = { showCheckInModal = false },
-            onLog = { sliderValue, energyLevel ->
-                checkInViewModel.insert(sliderValue, energyLevel)
+            onDismissRequest = { 
                 showCheckInModal = false
+                newHrvValue = null
+            },
+            onLog = { sliderValue, energyLevel, hrv ->
+                checkInViewModel.insert(sliderValue, energyLevel, hrv)
+                showCheckInModal = false
+                newHrvValue = null
             },
             latestCheckIn = latestCheckIn,
             moodScore = moodScore,
-            onMoodScoreChange = { moodScore = it }
+            onMoodScoreChange = { moodScore = it },
+            hrv = newHrvValue
         )
     }
 
@@ -109,9 +185,34 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
                         modifier = Modifier.weight(1f)
                     )
                     ContextualPulseCard(
-                        hrvValue = latestCheckIn?.hrvValue,
-                        onLogClick = { showCheckInModal = true },
-                        modifier = Modifier.weight(1f)
+                        hrvValue = newHrvValue ?: latestCheckIn?.hrvValue,
+                        onClick = {
+                            if (latestCheckIn?.hrvValue == null && newHrvValue == null) {
+                                when (PackageManager.PERMISSION_GRANTED) {
+                                    ContextCompat.checkSelfPermission(
+                                        context,
+                                        Manifest.permission.CAMERA
+                                    ) -> {
+                                        isMeasuringHrv = true
+                                    }
+                                    else -> {
+                                        launcher.launch(Manifest.permission.CAMERA)
+                                    }
+                                }
+                            } else {
+                                showCheckInModal = true
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        isMeasuring = isMeasuringHrv,
+                        onPulse = { timestamp ->
+                            pulseTimestamps.add(timestamp)
+                            if (firstPulseTime == null) {
+                                firstPulseTime = timestamp
+                                stablePulseStartIndex = 0  // Don't skip any pulses
+                                android.util.Log.d("HRV", "First pulse detected, starting 15s timer")
+                            }
+                        }
                     )
                 }
                 AnalyticsCard(
@@ -132,7 +233,10 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
                     .clip(CircleShape)
                     .background(LightGrey, CircleShape)
                     .border(2.dp, MutedDetail, CircleShape)
-                    .clickable { showCheckInModal = true },
+                    .clickable { 
+                        newHrvValue = null
+                        showCheckInModal = true 
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

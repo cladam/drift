@@ -50,10 +50,11 @@ import com.ilseon.drift.ui.theme.StatusUrgent
 @Composable
 fun CheckInModal(
     onDismissRequest: () -> Unit,
-    onLog: (Float, String) -> Unit,
+    onLog: (Float, String, Double?) -> Unit,
     latestCheckIn: DriftLog?,
     moodScore: Float,
     onMoodScoreChange: (Float) -> Unit,
+    hrv: Double? = null
 ) {
     var energyLevel by remember { mutableStateOf(latestCheckIn?.energyLevel ?: "MEDIUM") }
     val sliderTrackGradient = Brush.horizontalGradient(colors = listOf(StatusUrgent, StatusMedium, StatusHigh))
@@ -127,7 +128,7 @@ fun CheckInModal(
 
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
-                    onClick = { onLog(moodScore, energyLevel) },
+                    onClick = { onLog(moodScore, energyLevel, hrv) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(containerColor = MutedTeal)
