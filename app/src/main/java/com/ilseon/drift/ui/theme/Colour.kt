@@ -32,8 +32,7 @@ val PriorityHigh = MutedRed  // Muted Red (Urgent)
 val PriorityMedium =QuietAmber // Quiet Amber (Important)
 val PriorityLow = MutedDetail // Muted Detail (Backburner)
 
-// --- The "Pulse" Spectrum (Energy & Priority) ---
-// HIGH: High Energy / High Priority (Organic Gold/Amber)
+// --- The "Pulse" Spectrum  ---
 val StatusHigh = Color(0xFFE2B05E) // Warm Ochre (Motivating, not alarming)
 // MEDIUM: Balanced State (Sage)
 val StatusMedium = Color(0xFFA3A991) // Muted Sage (Calm, steady)

@@ -17,17 +17,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Bed
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,17 +32,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.ilseon.drift.data.DriftLog
+import com.ilseon.drift.ui.components.AnalyticsCard
 import com.ilseon.drift.ui.components.CheckInModal
+import com.ilseon.drift.ui.components.ContextualPulseCard
+import com.ilseon.drift.ui.components.ContextualSleepCard
+import com.ilseon.drift.ui.components.DataCard
 import com.ilseon.drift.ui.components.EnergyOrb
 import com.ilseon.drift.ui.theme.CustomTextPrimary
-import com.ilseon.drift.ui.theme.CustomTextSecondary
 import com.ilseon.drift.ui.theme.DarkGrey
 import com.ilseon.drift.ui.theme.LightGrey
 import com.ilseon.drift.ui.theme.MutedDetail
-import com.ilseon.drift.ui.theme.MutedTeal
+import com.ilseon.drift.ui.theme.StatusHigh
 import com.ilseon.drift.ui.theme.StatusMedium
 import com.ilseon.drift.ui.theme.StatusUrgent
 import com.ilseon.drift.ui.viewmodels.CheckInViewModel
@@ -55,7 +54,14 @@ import com.ilseon.drift.ui.viewmodels.CheckInViewModel
 fun MainScreen(checkInViewModel: CheckInViewModel) {
     val latestCheckIn: DriftLog? by checkInViewModel.latestCheckIn.collectAsState()
     var showCheckInModal by remember { mutableStateOf(false) }
-    val orbColor = latestCheckIn?.moodScore?.let { lerp(StatusUrgent, StatusMedium, it) } ?: StatusMedium
+    var moodScore by remember { mutableFloatStateOf(latestCheckIn?.moodScore ?: 0.5f) }
+    val weeklyTrend by checkInViewModel.weeklyTrend.collectAsState()
+
+    val orbColor = if (moodScore > 0.5f) {
+        lerp(StatusMedium, StatusHigh, (moodScore - 0.5f) * 2)
+    } else {
+        lerp(StatusUrgent, StatusMedium, moodScore * 2)
+    }
 
     if (showCheckInModal) {
         CheckInModal(
@@ -65,6 +71,8 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
                 showCheckInModal = false
             },
             latestCheckIn = latestCheckIn,
+            moodScore = moodScore,
+            onMoodScoreChange = { moodScore = it }
         )
     }
 
@@ -95,14 +103,23 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    DataCard(title = "Last Sleep", value = "8h 15m", icon = Icons.Default.Bed, modifier = Modifier.weight(1f))
-                    DataCard(title = "HRV", value = "62ms", icon = Icons.Default.Favorite, modifier = Modifier.weight(1f))
+                    ContextualSleepCard(
+                        sleepMinutes = latestCheckIn?.sleepDurationMinutes,
+                        onLogClick = { showCheckInModal = true },
+                        modifier = Modifier.weight(1f)
+                    )
+                    ContextualPulseCard(
+                        hrvValue = latestCheckIn?.hrvValue,
+                        onLogClick = { showCheckInModal = true },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
-                DataCard(
+                AnalyticsCard(
                     title = "Analytics",
                     value = "7d trend",
                     icon = Icons.AutoMirrored.Filled.ShowChart,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    logs = weeklyTrend
                 )
             }
 
@@ -126,33 +143,6 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
                         tint = CustomTextPrimary
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun DataCard(title: String, value: String, icon: ImageVector? = null, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = LightGrey)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = title,
-                    modifier = Modifier.size(24.dp),
-                    tint = MutedTeal
-                )
-                Spacer(modifier = Modifier.size(16.dp))
-            }
-            Column {
-                Text(text = title, color = CustomTextSecondary)
-                Text(text = value, color = CustomTextPrimary)
             }
         }
     }

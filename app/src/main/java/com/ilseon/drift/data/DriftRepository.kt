@@ -7,7 +7,7 @@ class DriftRepository(private val driftDao: DriftDao) {
 
     val latestPulse: Flow<DriftLog?> = driftDao.getLatestPulse()
 
-    fun getTrendLogs(since: Long): Flow<List<DriftLog>> {
+    fun getTrend(since: Long): Flow<List<DriftLog>> {
         return driftDao.getTrendLogs(since)
     }
 

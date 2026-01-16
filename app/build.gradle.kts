@@ -44,7 +44,7 @@ android {
 
     defaultConfig {
         applicationId = "com.ilseon.drift"
-        minSdk = 24
+        minSdk = 28
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
@@ -103,9 +103,10 @@ tasks.register("printVersionCodeAndName") {
 }
 
 dependencies {
-    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("androidx.health.connect:connect-client:1.1.0")
+    implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
-    implementation("com.google.android.material:material:1.12.0")
+    implementation("com.google.android.material:material:1.13.0")
     implementation(libs.androidx.compose.foundation.layout)
     androidTestImplementation(libs.androidx.rules)
     coreLibraryDesugaring(libs.desugar.jdk.libs)

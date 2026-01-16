@@ -1,5 +1,6 @@
 package com.ilseon.drift.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -16,13 +17,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,10 +36,13 @@ import androidx.compose.ui.window.Dialog
 import com.ilseon.drift.data.DriftLog
 import com.ilseon.drift.ui.theme.BorderQuiet
 import com.ilseon.drift.ui.theme.CustomTextPrimary
+import com.ilseon.drift.ui.theme.EnergyHigh
+import com.ilseon.drift.ui.theme.EnergyLow
+import com.ilseon.drift.ui.theme.EnergyMedium
 import com.ilseon.drift.ui.theme.LightGrey
 import com.ilseon.drift.ui.theme.MutedDetail
-import com.ilseon.drift.ui.theme.MutedRed
 import com.ilseon.drift.ui.theme.MutedTeal
+import com.ilseon.drift.ui.theme.StatusHigh
 import com.ilseon.drift.ui.theme.StatusMedium
 import com.ilseon.drift.ui.theme.StatusUrgent
 
@@ -48,10 +52,11 @@ fun CheckInModal(
     onDismissRequest: () -> Unit,
     onLog: (Float, String) -> Unit,
     latestCheckIn: DriftLog?,
+    moodScore: Float,
+    onMoodScoreChange: (Float) -> Unit,
 ) {
-    var sliderPosition by remember { mutableFloatStateOf(latestCheckIn?.moodScore ?: 0.5f) }
     var energyLevel by remember { mutableStateOf(latestCheckIn?.energyLevel ?: "MEDIUM") }
-    val sliderTrackGradient = Brush.horizontalGradient(colors = listOf(StatusUrgent, StatusMedium))
+    val sliderTrackGradient = Brush.horizontalGradient(colors = listOf(StatusUrgent, StatusMedium, StatusHigh))
 
     Dialog(onDismissRequest = { onDismissRequest() }) {
         Surface(
@@ -65,8 +70,8 @@ fun CheckInModal(
                 Text(text = "How's your headspace?", color = CustomTextPrimary)
                 Spacer(modifier = Modifier.height(16.dp))
                 Slider(
-                    value = sliderPosition,
-                    onValueChange = { sliderPosition = it },
+                    value = moodScore,
+                    onValueChange = { onMoodScoreChange(it) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = SliderDefaults.colors(
                         activeTrackColor = MutedTeal, // This will be overridden by the custom track
@@ -94,16 +99,38 @@ fun CheckInModal(
                 Text(text = "Energy Level", color = CustomTextPrimary)
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { energyLevel = "LOW" }, colors = ButtonDefaults.buttonColors(containerColor = if (energyLevel == "LOW") MutedTeal else MutedRed)) { Text("Low", color = Color.White) }
-                    Button(onClick = { energyLevel = "MEDIUM" }, colors = ButtonDefaults.buttonColors(containerColor = if (energyLevel == "MEDIUM") MutedTeal else MutedRed)) { Text("Medium", color = Color.White) }
-                    Button(onClick = { energyLevel = "HIGH" }, colors = ButtonDefaults.buttonColors(containerColor = if (energyLevel == "HIGH") MutedTeal else MutedRed)) { Text("High", color = Color.White) }
+                    val energyLevels = listOf("LOW", "MEDIUM", "HIGH")
+                    val energyLevelColors = mapOf(
+                        "LOW" to EnergyLow,
+                        "MEDIUM" to EnergyMedium,
+                        "HIGH" to EnergyHigh
+                    )
+
+                    energyLevels.forEach { level ->
+                        val isSelected = energyLevel == level
+                        val color = energyLevelColors[level] ?: MutedTeal
+                        OutlinedButton(
+                            onClick = { energyLevel = level },
+                            shape = RoundedCornerShape(50),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = if (isSelected) color.copy(alpha = 0.2f) else Color.Transparent,
+                            ),
+                            border = BorderStroke(1.dp, if (isSelected) color else BorderQuiet)
+                        ) {
+                            Text(
+                                text = level.lowercase().replaceFirstChar { it.uppercase() },
+                                color = if (isSelected) color else CustomTextPrimary
+                            )
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
-                    onClick = { onLog(sliderPosition, energyLevel) },
+                    onClick = { onLog(moodScore, energyLevel) },
+                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(containerColor = MutedRed)
+                    colors = ButtonDefaults.buttonColors(containerColor = MutedTeal)
                 ) {
                     Text(text = "Log", color = Color.White)
                 }

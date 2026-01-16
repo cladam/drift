@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class CheckInViewModel(private val repository: DriftRepository) : ViewModel() {
 
@@ -25,6 +26,19 @@ class CheckInViewModel(private val repository: DriftRepository) : ViewModel() {
             energyLevel = energyLevel
         )
         repository.insert(newLog)
+    }
+
+    val weeklyTrend: StateFlow<List<DriftLog>> = repository.getTrend(sevenDaysAgo())
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    private fun sevenDaysAgo(): Long {
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_YEAR, -7)
+        return calendar.timeInMillis
     }
 }
 
