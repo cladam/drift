@@ -1,5 +1,6 @@
 package com.ilseon.drift.ui.components
 
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -15,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.concurrent.futures.await
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.awaitCancellation
 import java.util.concurrent.Executors
 
 @Composable
@@ -32,8 +34,9 @@ fun CameraPreview(
 
     LaunchedEffect(Unit) {
         android.util.Log.d("CameraPreview", "Starting camera setup")
+        val cameraProvider = ProcessCameraProvider.getInstance(context).await()
+        var camera: Camera? = null
         try {
-            val cameraProvider = ProcessCameraProvider.getInstance(context).await()
             android.util.Log.d("CameraPreview", "Got camera provider")
 
             val preview = Preview.Builder().build().also {
@@ -54,7 +57,7 @@ fun CameraPreview(
                 }
 
             cameraProvider.unbindAll()
-            val camera = cameraProvider.bindToLifecycle(
+            camera = cameraProvider.bindToLifecycle(
                 lifecycleOwner,
                 cameraSelector,
                 preview,
@@ -63,8 +66,13 @@ fun CameraPreview(
             camera.cameraControl.enableTorch(true)
             android.util.Log.d("CameraPreview", "Camera bound successfully")
             currentOnCameraReady.value()
+            awaitCancellation()
         } catch (exc: Exception) {
-            android.util.Log.e("CameraPreview", "Camera setup failed", exc)
+            android.util.Log.e("CameraPreview", "Camera setup failed or cancelled", exc)
+        } finally {
+            android.util.Log.d("CameraPreview", "Cleaning up camera resources.")
+            camera?.cameraControl?.enableTorch(false)
+            cameraProvider.unbindAll()
         }
     }
 

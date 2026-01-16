@@ -2,6 +2,7 @@ package com.ilseon.drift.ui.components
 
 import android.util.Log
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +18,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -24,6 +30,7 @@ import com.ilseon.drift.ui.theme.LightGrey
 import com.ilseon.drift.ui.theme.MutedTeal
 import com.ilseon.drift.ui.theme.CustomTextPrimary
 import com.ilseon.drift.ui.theme.CustomTextSecondary
+import kotlinx.coroutines.delay
 import kotlin.math.sqrt
 
 @Composable
@@ -34,6 +41,18 @@ fun ContextualPulseCard(
     isMeasuring: Boolean = false,
     onPulse: (Long) -> Unit = {}
 ) {
+    var countdown by remember { mutableIntStateOf(25) }
+
+    LaunchedEffect(isMeasuring) {
+        if (isMeasuring) {
+            countdown = 25
+            while (countdown > 0) {
+                delay(1000)
+                countdown--
+            }
+        }
+    }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -41,6 +60,13 @@ fun ContextualPulseCard(
         colors = CardDefaults.cardColors(containerColor = LightGrey)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                Text("HRV", color = CustomTextSecondary)
+                if (isMeasuring) {
+                    Text("$countdown s", color = CustomTextSecondary)
+                }
+            }
+            Spacer(Modifier.height(8.dp))
             if (isMeasuring) {
                 Log.d("ContextualPulseCard", "isMeasuring = true, showing CameraPreview")
                 CameraPreview(
@@ -50,14 +76,13 @@ fun ContextualPulseCard(
                 )
 
             } else if (hrvValue != null) {
-                Text("HRV", color = CustomTextSecondary)
                 Text("${String.format("%.2f", hrvValue)}ms", color = CustomTextPrimary)
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Favorite, contentDescription = null, tint = MutedTeal)
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        "No HRV data found. Tap to measure.",
+                        "Tap to measure",
                         color = CustomTextSecondary,
                         style = MaterialTheme.typography.bodyMedium
                     )

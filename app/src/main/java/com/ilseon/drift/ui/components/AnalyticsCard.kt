@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ilseon.drift.data.DriftLog
 import com.ilseon.drift.ui.theme.BorderQuiet
-import com.ilseon.drift.ui.theme.CustomTextPrimary
 import com.ilseon.drift.ui.theme.CustomTextSecondary
 import com.ilseon.drift.ui.theme.LightGrey
 import com.ilseon.drift.ui.theme.MutedTeal
@@ -39,7 +38,6 @@ import java.util.Locale
 @Composable
 fun AnalyticsCard(
     title: String,
-    value: String,
     icon: ImageVector? = null,
     modifier: Modifier = Modifier,
     logs: List<DriftLog>
@@ -63,7 +61,6 @@ fun AnalyticsCard(
             }
             Column {
                 Text(text = title, color = CustomTextSecondary)
-                Text(text = value, color = CustomTextPrimary)
             }
         }
         WeekStrip(

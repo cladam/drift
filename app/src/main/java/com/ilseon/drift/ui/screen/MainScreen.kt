@@ -29,7 +29,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -58,8 +57,6 @@ import com.ilseon.drift.ui.theme.StatusMedium
 import com.ilseon.drift.ui.theme.StatusUrgent
 import com.ilseon.drift.ui.viewmodels.CheckInViewModel
 import kotlinx.coroutines.delay
-import kotlin.compareTo
-import kotlin.text.clear
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,7 +64,6 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
     val latestCheckIn: DriftLog? by checkInViewModel.latestCheckIn.collectAsState()
     var showCheckInModal by remember { mutableStateOf(false) }
     var newHrvValue by remember { mutableStateOf<Double?>(null) }
-    var moodScore by remember { mutableFloatStateOf(latestCheckIn?.moodScore ?: 0.5f) }
     val weeklyTrend by checkInViewModel.weeklyTrend.collectAsState()
     var isMeasuringHrv by remember { mutableStateOf(false) }
     val pulseTimestamps = remember { mutableStateListOf<Long>() }
@@ -81,6 +77,7 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
         }
     }
 
+    val moodScore = latestCheckIn?.moodScore ?: 0.5f
     val orbColor = if (moodScore > 0.5f) {
         lerp(StatusMedium, StatusHigh, (moodScore - 0.5f) * 2)
     } else {
@@ -129,6 +126,7 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
             pulseTimestamps.clear()
             firstPulseTime = null
             stablePulseStartIndex = 0
+            newHrvValue = null
         }
         // Remove the else branch that was clearing data
     }
@@ -138,16 +136,12 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
         CheckInModal(
             onDismissRequest = { 
                 showCheckInModal = false
-                newHrvValue = null
             },
             onLog = { sliderValue, energyLevel, hrv ->
                 checkInViewModel.insert(sliderValue, energyLevel, hrv)
                 showCheckInModal = false
-                newHrvValue = null
             },
             latestCheckIn = latestCheckIn,
-            moodScore = moodScore,
-            onMoodScoreChange = { moodScore = it },
             hrv = newHrvValue
         )
     }
@@ -187,20 +181,16 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
                     ContextualPulseCard(
                         hrvValue = newHrvValue ?: latestCheckIn?.hrvValue,
                         onClick = {
-                            if (latestCheckIn?.hrvValue == null && newHrvValue == null) {
-                                when (PackageManager.PERMISSION_GRANTED) {
-                                    ContextCompat.checkSelfPermission(
-                                        context,
-                                        Manifest.permission.CAMERA
-                                    ) -> {
-                                        isMeasuringHrv = true
-                                    }
-                                    else -> {
-                                        launcher.launch(Manifest.permission.CAMERA)
-                                    }
+                            when (PackageManager.PERMISSION_GRANTED) {
+                                ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.CAMERA
+                                ) -> {
+                                    isMeasuringHrv = true
                                 }
-                            } else {
-                                showCheckInModal = true
+                                else -> {
+                                    launcher.launch(Manifest.permission.CAMERA)
+                                }
                             }
                         },
                         modifier = Modifier.weight(1f),
@@ -217,7 +207,6 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
                 }
                 AnalyticsCard(
                     title = "Analytics",
-                    value = "7d trend",
                     icon = Icons.AutoMirrored.Filled.ShowChart,
                     modifier = Modifier.fillMaxWidth(),
                     logs = weeklyTrend

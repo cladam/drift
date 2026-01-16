@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
@@ -52,10 +53,9 @@ fun CheckInModal(
     onDismissRequest: () -> Unit,
     onLog: (Float, String, Double?) -> Unit,
     latestCheckIn: DriftLog?,
-    moodScore: Float,
-    onMoodScoreChange: (Float) -> Unit,
     hrv: Double? = null
 ) {
+    var moodScore by remember { mutableStateOf(latestCheckIn?.moodScore ?: 0.5f) }
     var energyLevel by remember { mutableStateOf(latestCheckIn?.energyLevel ?: "MEDIUM") }
     val sliderTrackGradient = Brush.horizontalGradient(colors = listOf(StatusUrgent, StatusMedium, StatusHigh))
 
@@ -68,17 +68,23 @@ fun CheckInModal(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                if (hrv != null) {
+                    Text(text = "New HRV: ${String.format("%.2f", hrv)}ms", color = CustomTextPrimary)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Divider(color = BorderQuiet, thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
                 Text(text = "How's your headspace?", color = CustomTextPrimary)
                 Spacer(modifier = Modifier.height(16.dp))
                 Slider(
                     value = moodScore,
-                    onValueChange = { onMoodScoreChange(it) },
+                    onValueChange = { moodScore = it },
                     modifier = Modifier.fillMaxWidth(),
                     colors = SliderDefaults.colors(
                         activeTrackColor = MutedTeal, // This will be overridden by the custom track
                         inactiveTrackColor = MutedTeal.copy(alpha = 0.5f)
                     ),
-                    track = { sliderPositions ->
+                    track = {
                         Box(
                             modifier = Modifier
                                 .height(4.dp)
