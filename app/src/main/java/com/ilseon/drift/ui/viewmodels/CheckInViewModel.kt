@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import kotlin.div
+import kotlin.text.toInt
 
 class CheckInViewModel(private val repository: DriftRepository) : ViewModel() {
 
@@ -21,6 +23,13 @@ class CheckInViewModel(private val repository: DriftRepository) : ViewModel() {
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = null
         )
+    val latestSleepRecord: StateFlow<DriftLog?> = repository.latestSleepRecord
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
 
     fun insert(moodScore: Float, energyLevel: String, hrv: Double? = null, bpm: Int? = null) = viewModelScope.launch {
         val previousLog = latestCheckIn.first()
@@ -64,21 +73,22 @@ class CheckInViewModel(private val repository: DriftRepository) : ViewModel() {
     fun endSleep() {
         viewModelScope.launch {
             val logToUpdate = latestCheckIn.first()
-            // Only end sleep if we are currently sleeping
             if (logToUpdate != null && logToUpdate.sleepStartTime != null && logToUpdate.sleepEndTime == null) {
                 val sleepEndTime = System.currentTimeMillis()
-                val sleepDuration = sleepEndTime - logToUpdate.sleepStartTime!!
+                val sleepStartTime = logToUpdate.sleepStartTime!!
+                val sleepDuration = sleepEndTime - sleepStartTime
                 val sleepDurationMinutes = (sleepDuration / (1000 * 60)).toInt()
 
-                // Create a copy with the updated sleep times
+                Log.d("CheckInViewModel", "Sleep start: $sleepStartTime")
+                Log.d("CheckInViewModel", "Sleep end: $sleepEndTime")
+                Log.d("CheckInViewModel", "Duration ms: $sleepDuration")
+                Log.d("CheckInViewModel", "Duration min: $sleepDurationMinutes")
+
                 val updatedLog = logToUpdate.copy(
                     sleepEndTime = sleepEndTime,
                     sleepDurationMinutes = sleepDurationMinutes
                 )
                 update(updatedLog)
-                Log.d("CheckInViewModel", "Sleep ended. Duration: $sleepDurationMinutes minutes")
-            } else {
-                Log.d("CheckInViewModel", "No valid start sleep record found to end.")
             }
         }
     }

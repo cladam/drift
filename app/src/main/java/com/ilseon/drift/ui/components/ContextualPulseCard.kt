@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,6 +41,7 @@ fun ContextualPulseCard(
     hrvValue: Double?,
     bpmValue: Int?,
     onClick: () -> Unit,
+    onCancel: () -> Unit = {},
     modifier: Modifier = Modifier,
     isMeasuring: Boolean = false,
     onPulse: (Long) -> Unit = {}
@@ -58,58 +61,71 @@ fun ContextualPulseCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onClick() },
+            .clickable(enabled = !isMeasuring) { onClick() },
         colors = CardDefaults.cardColors(containerColor = LightGrey)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Pulse & HRV", color = CustomTextSecondary)
-                if (isMeasuring) {
-                    Text("$countdown s", color = CustomTextSecondary)
-                }
-            }
-            Spacer(Modifier.height(8.dp))
-            if (isMeasuring) {
-                CameraPreview(
-                    modifier = Modifier.height(200.dp),
-                    onPulseDetected = { onPulse(it) },
-                    onCameraReady = { }
-                )
-            } else {
+        if (isMeasuring) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
+                    Text("Pulse & HRV", color = CustomTextSecondary)
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Favorite, contentDescription = null, tint = MutedTeal)
+                        Text("$countdown s", color = CustomTextSecondary)
                         Spacer(Modifier.width(8.dp))
-                        if (bpmValue != null) {
-                            Text("$bpmValue", color = CustomTextPrimary)
-                            Text(" bpm", color = CustomTextSecondary, style = MaterialTheme.typography.bodySmall)
-                        } else {
-                            Text("--", color = CustomTextSecondary)
-                        }
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Cancel",
+                            tint = CustomTextSecondary,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clickable { onCancel() }
+                        )
                     }
-                    if (hrvValue != null) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("${"%.0f".format(hrvValue)}", color = CustomTextPrimary)
-                            Text(" ms", color = CustomTextSecondary, style = MaterialTheme.typography.bodySmall)
+                }
+                Spacer(Modifier.height(8.dp))
+                CameraPreview(
+                    modifier = Modifier.height(200.dp),
+                    onPulseDetected = { onPulse(it) },
+                    onCameraReady = { }
+                )
+            }
+        } else {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.Favorite, contentDescription = null, tint = MutedTeal)
+                Spacer(Modifier.width(8.dp))
+                Column(verticalArrangement = Arrangement.Center) {
+                    Text("Pulse & HRV", color = CustomTextSecondary)
+                    when {
+                        bpmValue != null || hrvValue != null -> {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (bpmValue != null) {
+                                    Text("$bpmValue", color = CustomTextPrimary)
+                                    Text(" bpm", color = CustomTextSecondary, style = MaterialTheme.typography.bodySmall)
+                                }
+                                if (bpmValue != null && hrvValue != null) {
+                                    Text(" · ", color = CustomTextSecondary)
+                                }
+                                if (hrvValue != null) {
+                                    Text("${"%.0f".format(hrvValue)}", color = CustomTextPrimary)
+                                    Text(" ms", color = CustomTextSecondary, style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
                         }
-                    } else if (bpmValue == null) {
-                        Text("Tap to measure", color = CustomTextSecondary, style = MaterialTheme.typography.bodyMedium)
+                        else -> {
+                            Text("Tap to measure", color = CustomTextSecondary, style = MaterialTheme.typography.bodyMedium)
+                        }
                     }
                 }
             }
         }
     }
 }
-
-
 
 fun calculateRmssdFromIntervals(intervals: List<Long>): Double {
     if (intervals.size < 2) return 0.0

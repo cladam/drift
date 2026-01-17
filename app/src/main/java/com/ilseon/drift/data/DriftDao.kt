@@ -19,6 +19,10 @@ interface DriftDao {
     @Query("SELECT * FROM drift_logs ORDER BY timestamp DESC LIMIT 1")
     fun getLatestPulse(): Flow<DriftLog?>
 
+    @Query("SELECT * FROM drift_logs WHERE sleepDurationMinutes IS NOT NULL ORDER BY sleepEndTime DESC LIMIT 1")
+    fun getLatestSleepRecord(): Flow<DriftLog?>
+
+
     @Query("SELECT * FROM drift_logs WHERE timestamp > :since ORDER BY timestamp ASC")
     fun getTrendLogs(since: Long): Flow<List<DriftLog>>
 }

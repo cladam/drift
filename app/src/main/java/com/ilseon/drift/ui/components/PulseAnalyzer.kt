@@ -51,7 +51,7 @@ class PulseAnalyzer(
         val currentTime = System.currentTimeMillis()
         frameCount++
 
-        if (currentValue < 40 || currentValue > 250) {
+        if (currentValue !in 40.0..250.0) {
             image.close()
             return
         }

@@ -58,11 +58,13 @@ import com.ilseon.drift.ui.theme.StatusMedium
 import com.ilseon.drift.ui.theme.StatusUrgent
 import com.ilseon.drift.ui.viewmodels.CheckInViewModel
 import kotlinx.coroutines.delay
+import kotlin.text.clear
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(checkInViewModel: CheckInViewModel) {
     val latestCheckIn: DriftLog? by checkInViewModel.latestCheckIn.collectAsState()
+    val latestSleepRecord: DriftLog? by checkInViewModel.latestSleepRecord.collectAsState()
     var showCheckInModal by remember { mutableStateOf(false) }
     var newHrvValue by remember { mutableStateOf<Double?>(null) }
     var bpmValue by remember { mutableStateOf<Int?>(null) }
@@ -169,7 +171,7 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     ContextualSleepCard(
-                        sleepMinutes = latestCheckIn?.sleepDurationMinutes,
+                        sleepMinutes = latestSleepRecord?.sleepDurationMinutes,
                         isSleeping = isSleeping,
                         onClick = {
                             if (isSleeping) {
@@ -196,6 +198,11 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
                                     launcher.launch(Manifest.permission.CAMERA)
                                 }
                             }
+                        },
+                        onCancel = {
+                            isMeasuringHrv = false
+                            pulseTimestamps.clear()
+                            firstPulseTime = null
                         },
                         modifier = Modifier.weight(1f),
                         isMeasuring = isMeasuringHrv,

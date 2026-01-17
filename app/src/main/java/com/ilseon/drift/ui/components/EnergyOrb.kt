@@ -33,7 +33,7 @@ fun EnergyOrb(
         initialValue = 1f,
         targetValue = 1.08f,
         animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = LinearEasing),
+            animation = tween(3500, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "OrbScale"

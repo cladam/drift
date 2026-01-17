@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.Flow
 class DriftRepository(private val driftDao: DriftDao) {
 
     val latestPulse: Flow<DriftLog?> = driftDao.getLatestPulse()
+    val latestSleepRecord: Flow<DriftLog?> = driftDao.getLatestSleepRecord()
+
 
     fun getTrend(since: Long): Flow<List<DriftLog>> {
         return driftDao.getTrendLogs(since)
