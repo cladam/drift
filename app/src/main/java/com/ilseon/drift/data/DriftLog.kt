@@ -18,5 +18,6 @@ data class DriftLog(
     var sleepEndTime: Long? = null,
     var hrvValue: Double? = null, // Heart Rate Variability
     var bpm: Int? = null, // Beats Per Minute
-    var stressScore: Int? = null    // 1-100 scale from sensors
+    var stressScore: Int? = null,    // 1-100 scale from sensors
+    var stressIndex: Double? = null
 )

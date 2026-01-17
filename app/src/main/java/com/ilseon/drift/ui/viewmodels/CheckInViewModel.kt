@@ -31,7 +31,7 @@ class CheckInViewModel(private val repository: DriftRepository) : ViewModel() {
         )
 
 
-    fun insert(moodScore: Float, energyLevel: String, hrv: Double? = null, bpm: Int? = null) = viewModelScope.launch {
+    fun insert(moodScore: Float, energyLevel: String, hrv: Double? = null, bpm: Int? = null, stressIndex: Double? = null) = viewModelScope.launch {
         val previousLog = latestCheckIn.first()
 
         // Create a new log that carries over previous data for unmeasured metrics.
@@ -40,6 +40,7 @@ class CheckInViewModel(private val repository: DriftRepository) : ViewModel() {
             energyLevel = energyLevel,
             hrvValue = hrv ?: previousLog?.hrvValue, // Use new HRV if available, else carry over.
             bpm = bpm ?: previousLog?.bpm, // Use new BPM if available, else carry over.
+            stressIndex = stressIndex ?: previousLog?.stressIndex, // Use new stress index if available, else carry over.
             // Always carry over the latest sleep state.
             sleepDurationMinutes = previousLog?.sleepDurationMinutes,
             sleepStartTime = previousLog?.sleepStartTime,

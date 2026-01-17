@@ -47,8 +47,10 @@ import com.ilseon.drift.ui.components.CheckInModal
 import com.ilseon.drift.ui.components.ContextualPulseCard
 import com.ilseon.drift.ui.components.ContextualSleepCard
 import com.ilseon.drift.ui.components.EnergyOrb
+import com.ilseon.drift.ui.components.StressGauge
 import com.ilseon.drift.ui.components.calculateBpmFromIntervals
 import com.ilseon.drift.ui.components.calculateRmssdFromIntervals
+import com.ilseon.drift.ui.components.calculateStressIndex
 import com.ilseon.drift.ui.theme.CustomTextPrimary
 import com.ilseon.drift.ui.theme.DarkGrey
 import com.ilseon.drift.ui.theme.LightGrey
@@ -72,6 +74,7 @@ fun MainScreen(
     var showCheckInModal by remember { mutableStateOf(false) }
     var newHrvValue by remember { mutableStateOf<Double?>(null) }
     var bpmValue by remember { mutableStateOf<Int?>(null) }
+    var stressIndex by remember { mutableStateOf<Double?>(null) }
     val weeklyTrend by checkInViewModel.weeklyTrend.collectAsState()
     val isSleeping = latestCheckIn?.sleepStartTime != null && latestCheckIn?.sleepEndTime == null
     var isMeasuringHrv by remember { mutableStateOf(false) }
@@ -91,12 +94,34 @@ fun MainScreen(
         }
     }
 
+    // --- Holistic Orb Color Calculation ---
     val moodScore = latestCheckIn?.moodScore ?: 0.5f
-    val orbColor = if (moodScore > 0.5f) {
-        lerp(StatusMedium, StatusHigh, (moodScore - 0.5f) * 2)
-    } else {
-        lerp(StatusUrgent, StatusMedium, moodScore * 2)
+    val energyLevel = latestCheckIn?.energyLevel
+    val stress = stressIndex ?: latestCheckIn?.stressIndex
+
+    // 1. Normalize Scores (0.0 - 1.0, where 1.0 is positive)
+    val mood = moodScore
+    val energy = when (energyLevel) {
+        "HIGH" -> 1.0f
+        "MEDIUM" -> 0.5f
+        "LOW" -> 0.0f
+        else -> 0.5f // Default to medium if not set
     }
+    val stressNormalized = stress?.let {
+        // Invert stress: lower is better. Max out at a reasonable 25 for scaling.
+        (1.0f - (it / 25.0).toFloat()).coerceIn(0.0f, 1.0f)
+    } ?: 0.5f // Default to neutral if no stress data
+
+    // 2. Weighted Average
+    val combinedScore = (mood * 0.5f) + (energy * 0.25f) + (stressNormalized * 0.25f)
+
+    // 3. Determine Color based on the combined score
+    val orbColor = if (combinedScore > 0.5f) {
+        lerp(StatusMedium, StatusHigh, (combinedScore - 0.5f) * 2)
+    } else {
+        lerp(StatusUrgent, StatusMedium, combinedScore * 2)
+    }
+
     var firstPulseTime by remember { mutableStateOf<Long?>(null) }
     var stablePulseStartIndex by remember { mutableIntStateOf(0) }
 
@@ -115,6 +140,7 @@ fun MainScreen(
                 if (validIntervals.size >= 4) {
                     newHrvValue = calculateRmssdFromIntervals(validIntervals)
                     bpmValue = calculateBpmFromIntervals(validIntervals)
+                    stressIndex = calculateStressIndex(validIntervals)
                     showCheckInModal = true
                 } else {
                     Log.d("HRV", "Not enough valid intervals: ${validIntervals.size}")
@@ -133,6 +159,7 @@ fun MainScreen(
             firstPulseTime = null
             stablePulseStartIndex = 0
             newHrvValue = null
+            stressIndex = null
         }
     }
 
@@ -142,13 +169,14 @@ fun MainScreen(
             onDismissRequest = { 
                 showCheckInModal = false
             },
-            onLog = { sliderValue, energyLevel, hrv, bpm ->
-                checkInViewModel.insert(sliderValue, energyLevel, hrv, bpm)
+            onLog = { sliderValue, energyLvl, hrv, bpm, stress ->
+                checkInViewModel.insert(sliderValue, energyLvl, hrv, bpm, stress)
                 showCheckInModal = false
             },
             latestCheckIn = latestCheckIn,
             hrv = newHrvValue,
-            bpm = bpmValue
+            bpm = bpmValue,
+            stressIndex = stressIndex
         )
     }
 
@@ -168,7 +196,7 @@ fun MainScreen(
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                EnergyOrb(targetColor = orbColor)
+                EnergyOrb(targetColor = orbColor, isPulsing = isMeasuringHrv)
             }
 
             // Data cards
@@ -224,6 +252,11 @@ fun MainScreen(
                         }
                     )
                 }
+                StressGauge(
+                    stressIndex = stressIndex ?: latestCheckIn?.stressIndex,
+                    moodScore = moodScore,
+                    modifier = Modifier.fillMaxWidth()
+                )
                 AnalyticsCard(
                     title = "Analytics",
                     icon = Icons.AutoMirrored.Filled.ShowChart,

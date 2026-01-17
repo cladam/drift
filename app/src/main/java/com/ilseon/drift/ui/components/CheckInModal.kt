@@ -55,10 +55,11 @@ import com.ilseon.drift.ui.theme.StatusUrgent
 @Composable
 fun CheckInModal(
     onDismissRequest: () -> Unit,
-    onLog: (Float, String, Double?, Int?) -> Unit,
+    onLog: (Float, String, Double?, Int?, Double?) -> Unit,
     latestCheckIn: DriftLog?,
     hrv: Double? = null,
-    bpm: Int? = null
+    bpm: Int? = null,
+    stressIndex: Double? = null
 ) {
     var moodScore by remember { mutableFloatStateOf(latestCheckIn?.moodScore ?: 0.5f) }
     var energyLevel by remember { mutableStateOf(latestCheckIn?.energyLevel ?: "MEDIUM") }
@@ -73,7 +74,7 @@ fun CheckInModal(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (hrv != null || bpm != null) {
+                if (hrv != null || bpm != null || stressIndex != null) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
@@ -88,6 +89,12 @@ fun CheckInModal(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("${String.format("%.1f", hrv)}", style = MaterialTheme.typography.headlineMedium, color = CustomTextPrimary)
                                 Text("HRV (ms)", color = CustomTextSecondary)
+                            }
+                        }
+                        if (stressIndex != null) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("${"%.1f".format(stressIndex)}", style = MaterialTheme.typography.headlineMedium, color = CustomTextPrimary)
+                                Text("Stress Index", color = CustomTextSecondary)
                             }
                         }
                     }
@@ -155,7 +162,7 @@ fun CheckInModal(
 
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
-                    onClick = { onLog(moodScore, energyLevel, hrv, bpm) },
+                    onClick = { onLog(moodScore, energyLevel, hrv, bpm, stressIndex) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(containerColor = MutedTeal)
