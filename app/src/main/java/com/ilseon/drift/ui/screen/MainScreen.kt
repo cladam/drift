@@ -62,7 +62,11 @@ import kotlin.text.clear
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(checkInViewModel: CheckInViewModel) {
+fun MainScreen(
+    checkInViewModel: CheckInViewModel,
+    showCheckInFromNotification: Boolean,
+    onCheckInHandled: () -> Unit
+) {
     val latestCheckIn: DriftLog? by checkInViewModel.latestCheckIn.collectAsState()
     val latestSleepRecord: DriftLog? by checkInViewModel.latestSleepRecord.collectAsState()
     var showCheckInModal by remember { mutableStateOf(false) }
@@ -73,6 +77,11 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
     var isMeasuringHrv by remember { mutableStateOf(false) }
     val pulseTimestamps = remember { mutableStateListOf<Long>() }
     val context = LocalContext.current
+
+    if (showCheckInFromNotification) {
+        showCheckInModal = true
+        onCheckInHandled()
+    }
 
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
