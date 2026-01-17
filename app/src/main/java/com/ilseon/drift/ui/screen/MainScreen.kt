@@ -47,6 +47,7 @@ import com.ilseon.drift.ui.components.CheckInModal
 import com.ilseon.drift.ui.components.ContextualPulseCard
 import com.ilseon.drift.ui.components.ContextualSleepCard
 import com.ilseon.drift.ui.components.EnergyOrb
+import com.ilseon.drift.ui.components.calculateBpmFromIntervals
 import com.ilseon.drift.ui.components.calculateRmssdFromIntervals
 import com.ilseon.drift.ui.theme.CustomTextPrimary
 import com.ilseon.drift.ui.theme.DarkGrey
@@ -64,7 +65,9 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
     val latestCheckIn: DriftLog? by checkInViewModel.latestCheckIn.collectAsState()
     var showCheckInModal by remember { mutableStateOf(false) }
     var newHrvValue by remember { mutableStateOf<Double?>(null) }
+    var bpmValue by remember { mutableStateOf<Int?>(null) }
     val weeklyTrend by checkInViewModel.weeklyTrend.collectAsState()
+    val isSleeping = latestCheckIn?.sleepStartTime != null && latestCheckIn?.sleepEndTime == null
     var isMeasuringHrv by remember { mutableStateOf(false) }
     val pulseTimestamps = remember { mutableStateListOf<Long>() }
     val context = LocalContext.current
@@ -90,23 +93,17 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
         if (isMeasuringHrv && firstPulseTime != null) {
             delay(20000)
 
-            // Capture data FIRST - make a defensive copy
             val timestamps = pulseTimestamps.toList()
             val pulseCount = timestamps.size
-
-            Log.d("HRV", "Total pulses: $pulseCount, Stable count: ${pulseCount - 1}")
 
             if (pulseCount > 5) {
                 val stablePulses = timestamps.drop(1)
                 val intervals = stablePulses.zipWithNext { a, b -> b - a }
-                Log.d("HRV", "Raw intervals (${intervals.size}): $intervals")
-
                 val validIntervals = intervals.filter { it in 550L..1200L }
-                Log.d("HRV", "Valid intervals (${validIntervals.size}): $validIntervals")
 
                 if (validIntervals.size >= 4) {
                     newHrvValue = calculateRmssdFromIntervals(validIntervals)
-                    Log.d("HRV", "RMSSD: $newHrvValue ms")
+                    bpmValue = calculateBpmFromIntervals(validIntervals)
                     showCheckInModal = true
                 } else {
                     Log.d("HRV", "Not enough valid intervals: ${validIntervals.size}")
@@ -115,12 +112,10 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
                 Log.d("HRV", "Not enough pulses: $pulseCount")
             }
 
-            // Stop measuring LAST, after all processing is done
             isMeasuringHrv = false
         }
     }
 
-// Simplify this - only clear on START of measurement
     LaunchedEffect(isMeasuringHrv) {
         if (isMeasuringHrv) {
             pulseTimestamps.clear()
@@ -128,7 +123,6 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
             stablePulseStartIndex = 0
             newHrvValue = null
         }
-        // Remove the else branch that was clearing data
     }
 
 
@@ -137,12 +131,13 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
             onDismissRequest = { 
                 showCheckInModal = false
             },
-            onLog = { sliderValue, energyLevel, hrv ->
-                checkInViewModel.insert(sliderValue, energyLevel, hrv)
+            onLog = { sliderValue, energyLevel, hrv, bpm ->
+                checkInViewModel.insert(sliderValue, energyLevel, hrv, bpm)
                 showCheckInModal = false
             },
             latestCheckIn = latestCheckIn,
-            hrv = newHrvValue
+            hrv = newHrvValue,
+            bpm = bpmValue
         )
     }
 
@@ -175,11 +170,19 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
                 ) {
                     ContextualSleepCard(
                         sleepMinutes = latestCheckIn?.sleepDurationMinutes,
-                        onLogClick = { showCheckInModal = true },
+                        isSleeping = isSleeping,
+                        onClick = {
+                            if (isSleeping) {
+                                checkInViewModel.endSleep()
+                            } else {
+                                checkInViewModel.startSleep()
+                            }
+                        },
                         modifier = Modifier.weight(1f)
                     )
                     ContextualPulseCard(
                         hrvValue = newHrvValue ?: latestCheckIn?.hrvValue,
+                        bpmValue = bpmValue ?: latestCheckIn?.bpm,
                         onClick = {
                             when (PackageManager.PERMISSION_GRANTED) {
                                 ContextCompat.checkSelfPermission(
@@ -188,6 +191,7 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
                                 ) -> {
                                     isMeasuringHrv = true
                                 }
+
                                 else -> {
                                     launcher.launch(Manifest.permission.CAMERA)
                                 }
@@ -199,8 +203,7 @@ fun MainScreen(checkInViewModel: CheckInViewModel) {
                             pulseTimestamps.add(timestamp)
                             if (firstPulseTime == null) {
                                 firstPulseTime = timestamp
-                                stablePulseStartIndex = 0  // Don't skip any pulses
-                                android.util.Log.d("HRV", "First pulse detected, starting 15s timer")
+                                stablePulseStartIndex = 0
                             }
                         }
                     )

@@ -31,11 +31,13 @@ import com.ilseon.drift.ui.theme.MutedTeal
 import com.ilseon.drift.ui.theme.CustomTextPrimary
 import com.ilseon.drift.ui.theme.CustomTextSecondary
 import kotlinx.coroutines.delay
+import kotlin.dec
 import kotlin.math.sqrt
 
 @Composable
 fun ContextualPulseCard(
     hrvValue: Double?,
+    bpmValue: Int?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     isMeasuring: Boolean = false,
@@ -60,37 +62,54 @@ fun ContextualPulseCard(
         colors = CardDefaults.cardColors(containerColor = LightGrey)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                Text("HRV", color = CustomTextSecondary)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Pulse & HRV", color = CustomTextSecondary)
                 if (isMeasuring) {
                     Text("$countdown s", color = CustomTextSecondary)
                 }
             }
             Spacer(Modifier.height(8.dp))
             if (isMeasuring) {
-                Log.d("ContextualPulseCard", "isMeasuring = true, showing CameraPreview")
                 CameraPreview(
                     modifier = Modifier.height(200.dp),
                     onPulseDetected = { onPulse(it) },
-                    onCameraReady = { android.util.Log.d("ContextualPulseCard", "Camera is ready") }
+                    onCameraReady = { }
                 )
-
-            } else if (hrvValue != null) {
-                Text("${String.format("%.2f", hrvValue)}ms", color = CustomTextPrimary)
             } else {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Favorite, contentDescription = null, tint = MutedTeal)
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        "Tap to measure",
-                        color = CustomTextSecondary,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Favorite, contentDescription = null, tint = MutedTeal)
+                        Spacer(Modifier.width(8.dp))
+                        if (bpmValue != null) {
+                            Text("$bpmValue", color = CustomTextPrimary)
+                            Text(" bpm", color = CustomTextSecondary, style = MaterialTheme.typography.bodySmall)
+                        } else {
+                            Text("--", color = CustomTextSecondary)
+                        }
+                    }
+                    if (hrvValue != null) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("${"%.0f".format(hrvValue)}", color = CustomTextPrimary)
+                            Text(" ms", color = CustomTextSecondary, style = MaterialTheme.typography.bodySmall)
+                        }
+                    } else if (bpmValue == null) {
+                        Text("Tap to measure", color = CustomTextSecondary, style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
             }
         }
     }
 }
+
+
 
 fun calculateRmssdFromIntervals(intervals: List<Long>): Double {
     if (intervals.size < 2) return 0.0
@@ -109,4 +128,10 @@ fun calculateRmssdFromIntervals(intervals: List<Long>): Double {
 
     val squaredDiffs = filtered.zipWithNext { a, b -> ((b - a) * (b - a)).toDouble() }
     return kotlin.math.sqrt(squaredDiffs.average())
+}
+
+fun calculateBpmFromIntervals(intervals: List<Long>): Int {
+    if (intervals.isEmpty()) return 0
+    val avgInterval = intervals.average()
+    return (60000.0 / avgInterval).toInt()
 }

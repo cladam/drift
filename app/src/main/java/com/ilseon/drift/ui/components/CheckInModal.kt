@@ -18,6 +18,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -25,6 +27,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,6 +40,7 @@ import androidx.compose.ui.window.Dialog
 import com.ilseon.drift.data.DriftLog
 import com.ilseon.drift.ui.theme.BorderQuiet
 import com.ilseon.drift.ui.theme.CustomTextPrimary
+import com.ilseon.drift.ui.theme.CustomTextSecondary
 import com.ilseon.drift.ui.theme.EnergyHigh
 import com.ilseon.drift.ui.theme.EnergyLow
 import com.ilseon.drift.ui.theme.EnergyMedium
@@ -51,11 +55,12 @@ import com.ilseon.drift.ui.theme.StatusUrgent
 @Composable
 fun CheckInModal(
     onDismissRequest: () -> Unit,
-    onLog: (Float, String, Double?) -> Unit,
+    onLog: (Float, String, Double?, Int?) -> Unit,
     latestCheckIn: DriftLog?,
-    hrv: Double? = null
+    hrv: Double? = null,
+    bpm: Int? = null
 ) {
-    var moodScore by remember { mutableStateOf(latestCheckIn?.moodScore ?: 0.5f) }
+    var moodScore by remember { mutableFloatStateOf(latestCheckIn?.moodScore ?: 0.5f) }
     var energyLevel by remember { mutableStateOf(latestCheckIn?.energyLevel ?: "MEDIUM") }
     val sliderTrackGradient = Brush.horizontalGradient(colors = listOf(StatusUrgent, StatusMedium, StatusHigh))
 
@@ -68,10 +73,26 @@ fun CheckInModal(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (hrv != null) {
-                    Text(text = "New HRV: ${String.format("%.2f", hrv)}ms", color = CustomTextPrimary)
+                if (hrv != null || bpm != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        if (bpm != null) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("$bpm", style = MaterialTheme.typography.headlineMedium, color = CustomTextPrimary)
+                                Text("BPM", color = CustomTextSecondary)
+                            }
+                        }
+                        if (hrv != null) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("${String.format("%.1f", hrv)}", style = MaterialTheme.typography.headlineMedium, color = CustomTextPrimary)
+                                Text("HRV (ms)", color = CustomTextSecondary)
+                            }
+                        }
+                    }
                     Spacer(modifier = Modifier.height(16.dp))
-                    Divider(color = BorderQuiet, thickness = 1.dp)
+                    HorizontalDivider(color = BorderQuiet, thickness = 1.dp)
                     Spacer(modifier = Modifier.height(16.dp))
                 }
                 Text(text = "How's your headspace?", color = CustomTextPrimary)
@@ -134,7 +155,7 @@ fun CheckInModal(
 
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
-                    onClick = { onLog(moodScore, energyLevel, hrv) },
+                    onClick = { onLog(moodScore, energyLevel, hrv, bpm) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(containerColor = MutedTeal)

@@ -15,4 +15,9 @@ class DriftRepository(private val driftDao: DriftDao) {
     suspend fun insert(driftLog: DriftLog) {
         driftDao.insertLog(driftLog)
     }
+
+    @WorkerThread
+    suspend fun update(driftLog: DriftLog) {
+        driftDao.updateLog(driftLog)
+    }
 }

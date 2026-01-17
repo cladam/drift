@@ -1,5 +1,6 @@
 package com.ilseon.drift.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -7,6 +8,7 @@ import com.ilseon.drift.data.DriftLog
 import com.ilseon.drift.data.DriftRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -20,13 +22,65 @@ class CheckInViewModel(private val repository: DriftRepository) : ViewModel() {
             initialValue = null
         )
 
-    fun insert(moodScore: Float, energyLevel: String, hrv: Double? = null) = viewModelScope.launch {
+    fun insert(moodScore: Float, energyLevel: String, hrv: Double? = null, bpm: Int? = null) = viewModelScope.launch {
+        val previousLog = latestCheckIn.first()
+
+        // Create a new log that carries over previous data for unmeasured metrics.
         val newLog = DriftLog(
             moodScore = moodScore,
             energyLevel = energyLevel,
-            hrvValue = hrv
+            hrvValue = hrv ?: previousLog?.hrvValue, // Use new HRV if available, else carry over.
+            bpm = bpm ?: previousLog?.bpm, // Use new BPM if available, else carry over.
+            // Always carry over the latest sleep state.
+            sleepDurationMinutes = previousLog?.sleepDurationMinutes,
+            sleepStartTime = previousLog?.sleepStartTime,
+            sleepEndTime = previousLog?.sleepEndTime
         )
         repository.insert(newLog)
+    }
+
+    private fun update(log: DriftLog) = viewModelScope.launch {
+        repository.update(log)
+    }
+
+    fun startSleep() {
+        viewModelScope.launch {
+            val logToUpdate = latestCheckIn.first()
+            if (logToUpdate != null) {
+                // Update the most recent log with the sleep start time
+                val updatedLog = logToUpdate.copy(
+                    sleepStartTime = System.currentTimeMillis(),
+                    sleepEndTime = null // Ensure end time is cleared for the isSleeping state
+                )
+                update(updatedLog)
+            } else {
+                // If no logs exist, create a new one to start tracking sleep
+                val newLog = DriftLog(sleepStartTime = System.currentTimeMillis())
+                repository.insert(newLog)
+            }
+        }
+    }
+
+    fun endSleep() {
+        viewModelScope.launch {
+            val logToUpdate = latestCheckIn.first()
+            // Only end sleep if we are currently sleeping
+            if (logToUpdate != null && logToUpdate.sleepStartTime != null && logToUpdate.sleepEndTime == null) {
+                val sleepEndTime = System.currentTimeMillis()
+                val sleepDuration = sleepEndTime - logToUpdate.sleepStartTime!!
+                val sleepDurationMinutes = (sleepDuration / (1000 * 60)).toInt()
+
+                // Create a copy with the updated sleep times
+                val updatedLog = logToUpdate.copy(
+                    sleepEndTime = sleepEndTime,
+                    sleepDurationMinutes = sleepDurationMinutes
+                )
+                update(updatedLog)
+                Log.d("CheckInViewModel", "Sleep ended. Duration: $sleepDurationMinutes minutes")
+            } else {
+                Log.d("CheckInViewModel", "No valid start sleep record found to end.")
+            }
+        }
     }
 
     val weeklyTrend: StateFlow<List<DriftLog>> = repository.getTrend(sevenDaysAgo())

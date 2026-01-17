@@ -77,18 +77,14 @@ fun WeekStrip(
     modifier: Modifier = Modifier,
     logs: List<DriftLog>
 ) {
-    val logsByDay = logs.groupBy {
-        val cal = Calendar.getInstance()
-        cal.timeInMillis = it.timestamp
-        cal.get(Calendar.YEAR) * 1000 + cal.get(Calendar.DAY_OF_YEAR)
+    val logsByDay = logs.groupBy { dayOfYear(it.timestamp) }
+
+    val avgMoodByDay = logsByDay.mapValues { (_, logs) ->
+        logs.mapNotNull { it.moodScore }.average().takeIf { !it.isNaN() }
     }
 
-    val avgMoodByDay = logsByDay.mapValues { entry ->
-        entry.value.map { it.moodScore }.average()
-    }
-
-    val lastLogByDay = logsByDay.mapValues { entry ->
-        entry.value.maxByOrNull { it.timestamp }
+    val lastLogByDay = logsByDay.mapValues { (_, logs) ->
+        logs.maxByOrNull { it.timestamp }
     }
 
     val days = (0..6).map {
@@ -105,7 +101,7 @@ fun WeekStrip(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         days.forEach { dayCal ->
-            val dayKey = dayCal.get(Calendar.YEAR) * 1000 + dayCal.get(Calendar.DAY_OF_YEAR)
+            val dayKey = dayOfYear(dayCal.timeInMillis)
             val isToday = dayCal.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
                     dayCal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
 
@@ -113,8 +109,8 @@ fun WeekStrip(
             val avgMood = avgMoodByDay[dayKey]
             val avgColor = when {
                 avgMood != null -> {
-                    if (avgMood > 0.5f) {
-                        lerp(StatusMedium, StatusHigh, ((avgMood - 0.5f) * 2).toFloat())
+                    if (avgMood > 0.5) {
+                        lerp(StatusMedium, StatusHigh, ((avgMood - 0.5) * 2).toFloat())
                     } else {
                         lerp(StatusUrgent, StatusMedium, (avgMood * 2).toFloat())
                     }
@@ -125,11 +121,12 @@ fun WeekStrip(
             // --- Border color from last mood of today ---
             val lastLog = lastLogByDay[dayKey]
             var border = BorderStroke(1.dp, BorderQuiet)
-            if (isToday && lastLog != null) {
-                val lastMoodColor = if (lastLog.moodScore > 0.5f) {
-                    lerp(StatusMedium, StatusHigh, ((lastLog.moodScore - 0.5f) * 2).toFloat())
+            if (isToday && lastLog?.moodScore != null) {
+                val moodScore = lastLog.moodScore!!
+                val lastMoodColor = if (moodScore > 0.5f) {
+                    lerp(StatusMedium, StatusHigh, (moodScore - 0.5f) * 2)
                 } else {
-                    lerp(StatusUrgent, StatusMedium, (lastLog.moodScore * 2).toFloat())
+                    lerp(StatusUrgent, StatusMedium, moodScore * 2)
                 }
                 border = BorderStroke(2.dp, lastMoodColor)
             }
@@ -152,6 +149,12 @@ fun WeekStrip(
             }
         }
     }
+}
+
+private fun dayOfYear(timestamp: Long): Int {
+    val cal = Calendar.getInstance()
+    cal.timeInMillis = timestamp
+    return cal.get(Calendar.YEAR) * 1000 + cal.get(Calendar.DAY_OF_YEAR)
 }
 
 private fun lerp(start: Color, stop: Color, fraction: Float): Color {

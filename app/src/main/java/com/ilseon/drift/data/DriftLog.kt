@@ -9,11 +9,14 @@ data class DriftLog(
     val timestamp: Long = System.currentTimeMillis(),
 
     // Subjective Data (The "Active" Slider)
-    val moodScore: Float, // 0.0 (Tense) to 1.0 (Calm)
-    val energyLevel: String, // "LOW", "MEDIUM", "HIGH"
+    var moodScore: Float? = null, // 0.0 (Tense) to 1.0 (Calm)
+    var energyLevel: String? = null, // "LOW", "MEDIUM", "HIGH"
 
     // Objective Data (The "Passive" Health Connect data)
-    val sleepDurationMinutes: Int? = null,
-    val hrvValue: Double? = null, // Heart Rate Variability
-    val stressScore: Int? = null    // 1-100 scale from sensors
+    var sleepDurationMinutes: Int? = null,
+    var sleepStartTime: Long? = null,
+    var sleepEndTime: Long? = null,
+    var hrvValue: Double? = null, // Heart Rate Variability
+    var bpm: Int? = null, // Beats Per Minute
+    var stressScore: Int? = null    // 1-100 scale from sensors
 )
