@@ -136,17 +136,30 @@ fun MainScreen(
                 val stablePulses = timestamps.drop(1)
                 val intervals = stablePulses.zipWithNext { a, b -> b - a }
                 val validIntervals = intervals.filter { it in 550L..1200L }
+                Log.d("PulseAnalyzer HRV", "Stable pulses: ${stablePulses.size}")
+                Log.d("PulseAnalyzer HRV", "Valid intervals: ${validIntervals.size}")
+                Log.d("PulseAnalyzer HRV", "Valid intervals: ${validIntervals.size}")
+
+
 
                 if (validIntervals.size >= 4) {
                     newHrvValue = calculateRmssdFromIntervals(validIntervals)
                     bpmValue = calculateBpmFromIntervals(validIntervals)
                     stressIndex = calculateStressIndex(validIntervals)
                     showCheckInModal = true
+
+                    // Log data
+                    Log.d("PulseAnalyzer HRV", "New HRV: $newHrvValue")
+                    Log.d("PulseAnalyzer HRV", "New BPM: $bpmValue")
+                    Log.d("PulseAnalyzer HRV", "New Stress: $stressIndex")
+
+
+
                 } else {
-                    Log.d("HRV", "Not enough valid intervals: ${validIntervals.size}")
+                    Log.d("PulseAnalyzer HRV", "Not enough valid intervals: ${validIntervals.size}")
                 }
             } else {
-                Log.d("HRV", "Not enough pulses: $pulseCount")
+                Log.d("PulseAnalyzer HRV", "Not enough pulses: $pulseCount")
             }
 
             isMeasuringHrv = false

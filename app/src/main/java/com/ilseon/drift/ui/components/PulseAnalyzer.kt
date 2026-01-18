@@ -87,7 +87,7 @@ class PulseAnalyzer(
         val isPeak = prevSmoothed > prevPrevSmoothed && prevSmoothed > smoothed
 
         val peakHeight = prevSmoothed - windowMin
-        val isSignificant = dynamicRange > 0.3 && peakHeight > dynamicRange * 0.35
+        val isSignificant = dynamicRange > 1.5 && peakHeight > dynamicRange * 0.4
 
         if (frameCount % 15 == 0) {
             android.util.Log.d("PulseAnalyzer", "val=${"%.1f".format(smoothed)}, range=${"%.1f".format(dynamicRange)}, peak=$isPeak")
@@ -100,7 +100,7 @@ class PulseAnalyzer(
             val isConsistent = if (recentIntervals.size >= 3 && lastPeakTime != 0L) {
                 val avgInterval = recentIntervals.average()
                 val deviation = kotlin.math.abs(timeSinceLastPeak - avgInterval) / avgInterval
-                deviation < 0.5  // Allow 50% deviation
+                deviation < 0.35  // deviation
             } else true
 
             if (isValidInterval && isConsistent) {

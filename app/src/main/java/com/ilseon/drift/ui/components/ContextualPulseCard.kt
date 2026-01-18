@@ -45,7 +45,7 @@ import com.ilseon.drift.ui.theme.StatusLow
 import com.ilseon.drift.ui.theme.StatusMedium
 import com.ilseon.drift.ui.theme.StatusUrgent
 import kotlinx.coroutines.delay
-import kotlin.math.sqrt
+import kotlin.text.toFloat
 
 @Composable
 fun ContextualPulseCard(
@@ -144,22 +144,32 @@ fun StressGauge(
     moodScore: Float?,
     modifier: Modifier = Modifier
 ) {
-    // Vi justerar framstegsmätaren för den nya skalan (0-30 istället för 0-1000)
-    val progress = remember(stressIndex) {
-        stressIndex?.let { (it / 25.0).coerceIn(0.0, 1.0).toFloat() } ?: 0f
-    }
+    // Max value should match your highest meaningful threshold
+    val maxStress = 40.0 // Slightly above "Exhaustion" threshold (30)
 
-    val (statusText, statusColor) = when {
-        stressIndex == null -> "Mät puls för stressindex" to CustomTextSecondary
-        stressIndex < 10.0 -> "Låg stress / Återhämtning" to StatusMedium // Sage
-        stressIndex <= 15.0 -> "Normal belastning" to StatusHigh // Warm Ochre
-        else -> "Hög stress – dags för paus" to StatusUrgent // Terracotta
+    val progress = remember(stressIndex) {
+        stressIndex?.let { (it / maxStress).toFloat().coerceIn(0f, 1f) } ?: 0f
+    }
+    Log.d("StressGauge", "stressIndex: $stressIndex, progress: $progress")
+
+
+    // Marker positions as fractions of the gauge (matching thresholds)
+    val restMarker = 12.0 / maxStress      // 0.3
+    val loadMarker = 22.0 / maxStress      // 0.55
+    val highStressMarker = 30.0 / maxStress // 0.75
+
+    val (statusHeader, statusDescription, statusColor) = when {
+        stressIndex == null -> Triple("No Data", "Measure to get stress level.", CustomTextSecondary)
+        stressIndex < 12 -> Triple("Rest", "Relaxed state, good recovery.", StatusLow)
+        stressIndex <= 22 -> Triple("Load", "Normal daily activity level.", StatusMedium)
+        stressIndex <= 30 -> Triple("High Stress", "The body is in a defensive/alarm state.", StatusHigh)
+        else -> Triple("Exhaustion", "Extreme load, risk of overtraining.", StatusUrgent)
     }
 
     val moodAdvice = when {
         moodScore == null || stressIndex == null -> ""
-        moodScore < 0.5f && stressIndex < 10.0 -> "Du är nog bara trött, inte stressad."
-        moodScore < 0.5f && stressIndex > 15.0 -> "Kroppen är i beredskap. Prova andning."
+        moodScore < 0.5f && stressIndex < 12 -> "You might just be tired, not stressed."
+        moodScore < 0.5f && stressIndex > 30 -> "Body is on high alert. Try breathing exercises."
         else -> ""
     }
 
@@ -173,32 +183,53 @@ fun StressGauge(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(statusText, color = statusColor, style = MaterialTheme.typography.titleMedium)
+                Text(statusHeader, color = statusColor, style = MaterialTheme.typography.titleMedium)
                 if (stressIndex != null) {
-                    Text("${"%.1f".format(stressIndex)} SI", color = CustomTextSecondary, style = MaterialTheme.typography.bodySmall)
+                    Text("${"%.0f".format(stressIndex)} SI", color = CustomTextSecondary, style = MaterialTheme.typography.bodySmall)
                 }
             }
-
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = statusDescription,
+                color = CustomTextSecondary,
+                style = MaterialTheme.typography.bodyMedium,
+            )
             Spacer(Modifier.height(12.dp))
-
-            // Den visuella mätaren
+// Gauge bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(Color.Black.copy(alpha = 0.2f)) // Spåret
+                    .background(Color.Black.copy(alpha = 0.3f))
             ) {
+                // Full gradient background
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(progress)
+                        .fillMaxWidth()
                         .fillMaxHeight()
                         .background(
-                            // Skapar en mjuk övergång som matchar din status
                             Brush.horizontalGradient(
-                                listOf(StatusMedium, statusColor)
+                                colorStops = arrayOf(
+                                    0.0f to StatusLow,
+                                    restMarker.toFloat() to StatusLow,
+                                    loadMarker.toFloat() to StatusMedium,
+                                    highStressMarker.toFloat() to StatusHigh,
+                                    1.0f to StatusUrgent
+                                )
                             )
+                        ).clip(
+                            // Clip to only show the progress portion
+                            androidx.compose.ui.graphics.RectangleShape
                         )
+                )
+                // Overlay to hide the unfilled portion
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(1f - progress)
+                        .fillMaxHeight()
+                        .align(Alignment.CenterEnd)
+                        .background(Color.Black.copy(alpha = 0.3f))
                 )
             }
 
@@ -243,15 +274,15 @@ fun calculateBpmFromIntervals(intervals: List<Long>): Int {
 fun calculateStressIndex(rrIntervals: List<Long>): Double {
     if (rrIntervals.size < 2) return 0.0
 
-    // 1. Beräkna original SI enligt Baevsky
+    // 1. Calculate original Baevsky Stress Index
     val maxRR = rrIntervals.maxOrNull()?.toDouble() ?: 0.0
     val minRR = rrIntervals.minOrNull()?.toDouble() ?: 0.0
-    val mxDMn = (maxRR - minRR) / 1000.0 // sekunder
+    val mxDMn = (maxRR - minRR) / 1000.0 // seconds
     if (mxDMn == 0.0) return 0.0
 
     val bins = rrIntervals.map { (it / 50) * 50 }
     val modeBin = bins.groupBy { it }.maxByOrNull { it.value.size }?.key ?: 0L
-    val mo = modeBin / 1000.0 // sekunder
+    val mo = modeBin / 1000.0 // seconds
     if (mo == 0.0) return 0.0
 
     val modeCount = bins.count { it == modeBin }
@@ -259,7 +290,7 @@ fun calculateStressIndex(rrIntervals: List<Long>): Double {
 
     val baevskySI = aMo / (2.0 * mo * mxDMn)
 
-    // 2. KUBIOS-TRANSFORMATION: Ta kvadratroten
+    // Kubios Stress Index, take square root of Baevsky Stress Index
     val kubiosSI = kotlin.math.sqrt(baevskySI)
     
     // Return 0 if the result is not a finite number
