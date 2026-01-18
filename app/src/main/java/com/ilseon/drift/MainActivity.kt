@@ -3,7 +3,6 @@ package com.ilseon.drift
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -16,6 +15,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -32,7 +32,6 @@ class MainActivity : ComponentActivity() {
         CheckInViewModelFactory((application as DriftApplication).repository)
     }
 
-    private var showCheckInFromNotification by mutableStateOf(false)
     private var showNotificationRationaleDialog by mutableStateOf(false)
     private var showAlarmPermissionDialog by mutableStateOf(false)
     private lateinit var notificationManager: DriftNotificationManager
@@ -88,10 +87,12 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             DriftTheme {
+                val showCheckInFromWidget by checkInViewModel.showCheckInFromWidget.collectAsState()
+
                 MainScreen(
                     checkInViewModel = checkInViewModel,
-                    showCheckInFromNotification = showCheckInFromNotification,
-                    onCheckInHandled = { showCheckInFromNotification = false }
+                    showCheckInFromNotification = showCheckInFromWidget,
+                    onCheckInHandled = { checkInViewModel.onCheckInFromWidgetHandled() }
                 )
             }
 
@@ -130,7 +131,7 @@ class MainActivity : ComponentActivity() {
 
     private fun handleIntent(intent: Intent?) {
         if (intent?.getStringExtra("notification_action") == "check_in") {
-            showCheckInFromNotification = true
+            checkInViewModel.triggerCheckInFromWidget()
         }
     }
 }

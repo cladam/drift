@@ -6,14 +6,14 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ilseon.drift.data.DriftLog
 import com.ilseon.drift.data.DriftRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
-import kotlin.div
-import kotlin.text.toInt
 
 class CheckInViewModel(private val repository: DriftRepository) : ViewModel() {
 
@@ -30,6 +30,21 @@ class CheckInViewModel(private val repository: DriftRepository) : ViewModel() {
             initialValue = null
         )
 
+    private val _showCheckInFromWidget = MutableStateFlow(false)
+    val showCheckInFromWidget = _showCheckInFromWidget.asStateFlow()
+
+    fun triggerCheckInFromWidget() {
+        viewModelScope.launch {
+            // This suspends until the initial value from the database is loaded into latestCheckIn
+            latestCheckIn.first()
+            // Now we can safely show the modal
+            _showCheckInFromWidget.value = true
+        }
+    }
+
+    fun onCheckInFromWidgetHandled() {
+        _showCheckInFromWidget.value = false
+    }
 
     fun insert(moodScore: Float, energyLevel: String, hrv: Double? = null, bpm: Int? = null, stressIndex: Double? = null) = viewModelScope.launch {
         val previousLog = latestCheckIn.first()
