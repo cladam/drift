@@ -1,6 +1,11 @@
 package com.ilseon.drift.ui.components
 
+import android.hardware.camera2.CameraCharacteristics
+import androidx.annotation.OptIn
+import androidx.camera.camera2.interop.Camera2CameraInfo
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.Camera
+import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -19,6 +24,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.awaitCancellation
 import java.util.concurrent.Executors
 
+@OptIn(ExperimentalCamera2Interop::class)
 @Composable
 fun CameraPreview(
     modifier: Modifier = Modifier,
@@ -40,10 +46,20 @@ fun CameraPreview(
             android.util.Log.d("CameraPreview", "Got camera provider")
 
             val preview = Preview.Builder().build().also {
-                it.setSurfaceProvider(previewView.surfaceProvider)
+                it.surfaceProvider = previewView.surfaceProvider
             }
 
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            // Select the main back camera to avoid lens switching on multi-camera devices.
+            val cameraSelector = CameraSelector.Builder()
+                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                .addCameraFilter { cameraInfos ->
+                    cameraInfos.maxByOrNull { cameraInfo ->
+                        val characteristics = Camera2CameraInfo.from(cameraInfo)
+                            .getCameraCharacteristic(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE)
+                        (characteristics?.width ?: 0f) * (characteristics?.height ?: 0f)
+                    }?.let { listOf(it) } ?: cameraInfos
+                }
+                .build()
 
             val imageAnalysis = ImageAnalysis.Builder()
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
@@ -64,6 +80,8 @@ fun CameraPreview(
                 imageAnalysis
             )
             camera.cameraControl.enableTorch(true)
+            // Prevent zooming to ensure we're using the main lens.
+            camera.cameraControl.setLinearZoom(0f)
             android.util.Log.d("CameraPreview", "Camera bound successfully")
             currentOnCameraReady.value()
             awaitCancellation()

@@ -19,7 +19,9 @@ class DriftNotificationManager(private val context: Context) {
 
     companion object {
         const val NOTIFICATION_CHANNEL_ID = "drift_notification_channel"
+        const val SLEEP_CHANNEL_ID = "sleep_channel"
         const val NOTIFICATION_ID = 1
+        const val SLEEP_NOTIFICATION_ID = 2
         const val PERIODIC_WORK_NAME = "drift_periodic_notification_work"
     }
 
@@ -33,9 +35,18 @@ class DriftNotificationManager(private val context: Context) {
             val channel = NotificationChannel(NOTIFICATION_CHANNEL_ID, name, importance).apply {
                 description = descriptionText
             }
+
+            val sleepChannelName = "Sleep Tracking"
+            val sleepChannelDescription = "Ongoing sleep tracking notification."
+            val sleepChannelImportance = NotificationManager.IMPORTANCE_LOW
+            val sleepChannel = NotificationChannel(SLEEP_CHANNEL_ID, sleepChannelName, sleepChannelImportance).apply {
+                description = sleepChannelDescription
+            }
+
             val notificationManager: NotificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
+            notificationManager.createNotificationChannel(sleepChannel)
         }
     }
 
@@ -109,5 +120,22 @@ class DriftNotificationManager(private val context: Context) {
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(NOTIFICATION_ID, builder.build())
+    }
+
+    fun showSleepTrackingNotification() {
+        val builder = NotificationCompat.Builder(context, SLEEP_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher)
+            .setContentTitle("Drift")
+            .setContentText("Sleep tracking is active.")
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(SLEEP_NOTIFICATION_ID, builder.build())
+    }
+
+    fun dismissSleepTrackingNotification() {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(SLEEP_NOTIFICATION_ID)
     }
 }
