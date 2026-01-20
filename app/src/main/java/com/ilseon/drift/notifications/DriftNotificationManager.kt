@@ -1,6 +1,7 @@
 package com.ilseon.drift.notifications
 
 import android.app.AlarmManager
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -14,6 +15,7 @@ import com.ilseon.drift.MainActivity
 import com.ilseon.drift.R
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
+import kotlin.or
 
 class DriftNotificationManager(private val context: Context) {
 
@@ -22,6 +24,7 @@ class DriftNotificationManager(private val context: Context) {
         const val SLEEP_CHANNEL_ID = "sleep_channel"
         const val NOTIFICATION_ID = 1
         const val SLEEP_NOTIFICATION_ID = 2
+        const val SLEEP_SUMMARY_NOTIFICATION_ID = 3
         const val PERIODIC_WORK_NAME = "drift_periodic_notification_work"
     }
 
@@ -122,7 +125,33 @@ class DriftNotificationManager(private val context: Context) {
         notificationManager.notify(NOTIFICATION_ID, builder.build())
     }
 
-    fun showSleepTrackingNotification() {
+    fun showSleepSummaryNotification(sleepMinutes: Int) {
+        val hours = sleepMinutes / 60
+        val minutes = sleepMinutes % 60
+        val durationText = if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher)
+            .setContentTitle("Good morning!")
+            .setContentText("You slept for $durationText")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(SLEEP_SUMMARY_NOTIFICATION_ID, builder.build())
+    }
+    fun getSleepTrackingNotification(): Notification {
         val builder = NotificationCompat.Builder(context, SLEEP_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher)
             .setContentTitle("Drift")
@@ -130,8 +159,7 @@ class DriftNotificationManager(private val context: Context) {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
 
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(SLEEP_NOTIFICATION_ID, builder.build())
+        return builder.build()
     }
 
     fun dismissSleepTrackingNotification() {

@@ -1,11 +1,16 @@
 package com.ilseon.drift.ui.viewmodels
 
+import android.app.Application
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ilseon.drift.data.DriftLog
 import com.ilseon.drift.data.DriftRepository
+import com.ilseon.drift.notifications.DriftNotificationManager
+import com.ilseon.drift.service.SleepTrackingManager
+import com.ilseon.drift.service.SleepTrackingState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,8 +19,57 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import kotlin.compareTo
+import kotlin.div
+import kotlin.text.toInt
 
-class CheckInViewModel(private val repository: DriftRepository) : ViewModel() {
+class CheckInViewModel(
+    application: Application,
+    private val repository: DriftRepository
+) : AndroidViewModel(application) {
+
+    private val sleepTrackingManager = SleepTrackingManager(application)
+    private val notificationManager = DriftNotificationManager(application)
+
+    val isSleepTracking: StateFlow<Boolean> = SleepTrackingState.isTracking
+
+    init {
+        // Observe when the service auto-stops and save the sleep data
+        viewModelScope.launch {
+            SleepTrackingState.isTracking.collect { isTracking ->
+                if (!isTracking && SleepTrackingState.sleepDurationMs.value > 0) {
+                    saveSleepFromService()
+                }
+            }
+        }
+    }
+
+    private fun saveSleepFromService() {
+        viewModelScope.launch {
+            val logToUpdate = latestCheckIn.first()
+            val durationMs = SleepTrackingState.sleepDurationMs.value
+            val endTime = SleepTrackingState.sleepEndTime.value
+
+            if (logToUpdate != null && logToUpdate.sleepStartTime != null && durationMs > 0) {
+                val sleepDurationMinutes = (durationMs / 60000).toInt()
+                Log.d("CheckInViewModel", "Auto-saving sleep: $sleepDurationMinutes minutes")
+
+                val updatedLog = logToUpdate.copy(
+                    sleepEndTime = endTime,
+                    sleepDurationMinutes = sleepDurationMinutes
+                )
+                update(updatedLog)
+
+                // Show notification with sleep summary
+                notificationManager.showSleepSummaryNotification(sleepDurationMinutes)
+
+                // Reset the state
+                SleepTrackingState.sleepDurationMs.value = 0L
+                SleepTrackingState.sleepEndTime.value = 0L
+            }
+        }
+    }
+
 
     val latestCheckIn: StateFlow<DriftLog?> = repository.latestPulse
         .stateIn(
@@ -72,22 +126,25 @@ class CheckInViewModel(private val repository: DriftRepository) : ViewModel() {
         viewModelScope.launch {
             val logToUpdate = latestCheckIn.first()
             if (logToUpdate != null) {
-                // Update the most recent log with the sleep start time
                 val updatedLog = logToUpdate.copy(
                     sleepStartTime = System.currentTimeMillis(),
-                    sleepEndTime = null // Ensure end time is cleared for the isSleeping state
+                    sleepEndTime = null
                 )
                 update(updatedLog)
             } else {
-                // If no logs exist, create a new one to start tracking sleep
                 val newLog = DriftLog(sleepStartTime = System.currentTimeMillis())
                 repository.insert(newLog)
             }
+            // Start the foreground service
+            sleepTrackingManager.startSleepTracking()
         }
     }
 
     fun endSleep() {
         viewModelScope.launch {
+            // Stop the foreground service first
+            sleepTrackingManager.stopSleepTracking()
+
             val logToUpdate = latestCheckIn.first()
             if (logToUpdate != null && logToUpdate.sleepStartTime != null && logToUpdate.sleepEndTime == null) {
                 val sleepEndTime = System.currentTimeMillis()
@@ -123,11 +180,14 @@ class CheckInViewModel(private val repository: DriftRepository) : ViewModel() {
     }
 }
 
-class CheckInViewModelFactory(private val repository: DriftRepository) : ViewModelProvider.Factory {
+class CheckInViewModelFactory(
+    private val application: Application,
+    private val repository: DriftRepository
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(CheckInViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return CheckInViewModel(repository) as T
+            return CheckInViewModel(application, repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

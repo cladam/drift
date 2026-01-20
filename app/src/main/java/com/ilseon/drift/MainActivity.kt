@@ -29,7 +29,7 @@ import com.ilseon.drift.ui.viewmodels.CheckInViewModelFactory
 class MainActivity : ComponentActivity() {
 
     private val checkInViewModel: CheckInViewModel by viewModels {
-        CheckInViewModelFactory((application as DriftApplication).repository)
+        CheckInViewModelFactory(application, (application as DriftApplication).repository)
     }
 
     private var showNotificationRationaleDialog by mutableStateOf(false)
@@ -80,6 +80,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         notificationManager = DriftNotificationManager(this)
+        notificationManager.createNotificationChannel()
         enableEdgeToEdge()
 
         handleIntent(intent)
