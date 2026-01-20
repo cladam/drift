@@ -69,7 +69,7 @@ class SleepTrackingService : Service() {
         val elapsedMinutes = (System.currentTimeMillis() - sleepStartTime) / 60000
         Log.d(TAG, "Elapsed time: $elapsedMinutes minute(s).")
 
-        if (elapsedMinutes >= 1) {
+        if (elapsedMinutes >= 120) {
             Log.d(TAG, "Threshold met. Stopping tracking.")
             stopTracking()
         } else {
