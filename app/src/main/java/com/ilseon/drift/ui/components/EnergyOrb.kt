@@ -18,12 +18,20 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
+
+private fun lerp(start: Float, stop: Float, fraction: Float): Float {
+    return start + fraction * (stop - start)
+}
 
 @Composable
 fun EnergyOrb(
     targetColor: Color,
     modifier: Modifier = Modifier,
-    isPulsing: Boolean = false,
+    isMeasuring: Boolean,
+    hrv: Float? = null,
+    stressIndex: Float? = null,
+    energy: Float = 0.5f,
 ) {
     val animatedColor by animateColorAsState(
         targetValue = targetColor,
@@ -32,38 +40,52 @@ fun EnergyOrb(
     )
 
     val infiniteTransition = rememberInfiniteTransition(label = "OrbPulse")
-    val pulseScale by if (isPulsing) {
-        // Heartbeat pulse animation
+    val pulseScale by if (isMeasuring) {
+        // Heartbeat pulse animation driven by HRV during measurement
+        val pulseDuration = hrv?.let {
+            (10 * it.coerceIn(20f, 100f) + 500).roundToInt()
+        } ?: 1000 // Default to 1-second pulse if HRV is not available
+
         infiniteTransition.animateFloat(
             initialValue = 1f,
             targetValue = 1.2f, // A more pronounced pulse
             animationSpec = infiniteRepeatable(
                 animation = keyframes {
-                    durationMillis = 1000 // Motsvarar ca 60 BPM
+                    durationMillis = pulseDuration
 
-                    // "Lub" - Den stora sammandragningen
+                    // "Lub" - The big contraction
                     1.0f at 0 using FastOutSlowInEasing
-                    1.15f at 100
-                    1.05f at 200
+                    1.15f at (pulseDuration * 0.1).roundToInt()
+                    1.05f at (pulseDuration * 0.2).roundToInt()
 
-                    // "Dub" - Den mindre efterföljande sammandragningen
-                    1.10f at 300
-                    1.0f at 450
+                    // "Dub" - The smaller subsequent contraction
+                    1.10f at (pulseDuration * 0.3).roundToInt()
+                    1.0f at (pulseDuration * 0.45).roundToInt()
 
-                    // Paus (Diastole) - Håller sig stilla resten av sekunden
-                    1.0f at 1000
+                    // Pause (Diastole) - Stays still for the rest of the cycle
+                    1.0f at pulseDuration
                 },
                 repeatMode = RepeatMode.Restart
             ),
             label = "HeartbeatScale"
         )
     } else {
-        // Original gentle breathing animation
+        // Gentle breathing animation influenced by Stress Index and HRV
+        // Duration from Stress: Higher stress -> faster breathing
+        val breathingDuration = stressIndex?.let {
+            (7000 - 200 * it.coerceIn(0f, 25f)).roundToInt()
+        } ?: 3500 // Default duration
+
+        // Amplitude from HRV: Higher HRV -> deeper breathing (larger scale)
+        val breathingAmplitude = hrv?.let {
+            lerp(1.05f, 1.15f, (it.coerceIn(20f, 120f) - 20f) / 100f)
+        } ?: 1.08f // Default amplitude
+
         infiniteTransition.animateFloat(
             initialValue = 1f,
-            targetValue = 1.08f,
+            targetValue = breathingAmplitude,
             animationSpec = infiniteRepeatable(
-                animation = tween(3500, easing = LinearEasing),
+                animation = tween(breathingDuration, easing = LinearEasing),
                 repeatMode = RepeatMode.Reverse
             ),
             label = "BreathingScale"
@@ -78,15 +100,19 @@ fun EnergyOrb(
                 scaleY = pulseScale
             }
     ) {
+        // Higher energy level results in a brighter, larger glow.
+        val glowAlpha = lerp(0.2f, 0.6f, energy)
+        val glowRadiusDivisor = lerp(2.2f, 1.8f, energy)
+
         // Outer glow
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(
-                    animatedColor.copy(alpha = 0.4f),
+                    animatedColor.copy(alpha = glowAlpha),
                     Color.Transparent
                 )
             ),
-            radius = size.minDimension / 2
+            radius = size.minDimension / glowRadiusDivisor
         )
 
         // Main orb with a gradient

@@ -16,6 +16,9 @@ interface DriftDao {
     @Update
     suspend fun updateLog(log: DriftLog)
 
+    @Query("SELECT * FROM drift_logs ORDER BY timestamp DESC")
+    fun getAll(): Flow<List<DriftLog>>
+
     @Query("SELECT * FROM drift_logs ORDER BY timestamp DESC LIMIT 1")
     fun getLatestPulse(): Flow<DriftLog?>
 

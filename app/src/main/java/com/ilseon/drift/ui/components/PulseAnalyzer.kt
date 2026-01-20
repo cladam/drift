@@ -12,7 +12,7 @@ class PulseAnalyzer(
 ) : ImageAnalysis.Analyzer {
 
     private val signalBuffer = ArrayDeque<Double>(60)
-    private val recentIntervals = ArrayDeque<Long>(5)
+    private val recentIntervals = ArrayDeque<Long>(10)
     private var lastPeakTime = 0L
     private val minPeakInterval = 550L  // ~109 BPM max
     private val maxPeakInterval = 1200L // ~50 BPM min
@@ -87,7 +87,7 @@ class PulseAnalyzer(
         val isPeak = prevSmoothed > prevPrevSmoothed && prevSmoothed > smoothed
 
         val peakHeight = prevSmoothed - windowMin
-        val isSignificant = dynamicRange > 1.5 && peakHeight > dynamicRange * 0.4
+        val isSignificant = dynamicRange > 1.0 && peakHeight > dynamicRange * 0.4
 
         if (frameCount % 15 == 0) {
             android.util.Log.d("PulseAnalyzer", "val=${"%.1f".format(smoothed)}, range=${"%.1f".format(dynamicRange)}, peak=$isPeak")
@@ -100,14 +100,14 @@ class PulseAnalyzer(
             val isConsistent = if (recentIntervals.size >= 3 && lastPeakTime != 0L) {
                 val avgInterval = recentIntervals.average()
                 val deviation = kotlin.math.abs(timeSinceLastPeak - avgInterval) / avgInterval
-                deviation < 0.35  // deviation
+                deviation < 0.35
             } else true
 
             if (isValidInterval && isConsistent) {
                 onPulseDetected(currentTime)
                 if (lastPeakTime != 0L) {
                     recentIntervals.addLast(timeSinceLastPeak)
-                    if (recentIntervals.size > 5) recentIntervals.removeFirst()
+                    if (recentIntervals.size > 10) recentIntervals.removeFirst()
                     android.util.Log.d("PulseAnalyzer", "Pulse: ${timeSinceLastPeak}ms")
                 } else {
                     android.util.Log.d("PulseAnalyzer", "First pulse detected")

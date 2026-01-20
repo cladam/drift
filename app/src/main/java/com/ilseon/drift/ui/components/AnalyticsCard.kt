@@ -1,5 +1,10 @@
 package com.ilseon.drift.ui.components
 
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,6 +22,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -128,7 +134,22 @@ fun WeekStrip(
                 } else {
                     lerp(StatusUrgent, StatusMedium, moodScore * 2)
                 }
-                border = BorderStroke(2.dp, lastMoodColor)
+
+                val timeSinceLog = System.currentTimeMillis() - lastLog.timestamp
+                val fourHoursInMillis = 4 * 60 * 60 * 1000
+
+                val borderColor = if (timeSinceLog > fourHoursInMillis) {
+                    // Start fading after 4 hours. Let's make it fade over the next 8 hours.
+                    val fadeDuration = fourHoursInMillis * 2
+                    val timePastThreshold = timeSinceLog - fourHoursInMillis
+                    val fadePercentage = (timePastThreshold.toFloat() / fadeDuration.toFloat()).coerceIn(0f, 1f)
+                    // Fade from full alpha to 40% alpha
+                    lastMoodColor.copy(alpha = 1f - (0.6f * fadePercentage))
+                } else {
+                    lastMoodColor
+                }
+
+                border = BorderStroke(2.dp, borderColor)
             }
 
             Column(

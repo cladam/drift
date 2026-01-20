@@ -57,11 +57,11 @@ fun ContextualPulseCard(
     isMeasuring: Boolean = false,
     onPulse: (Long) -> Unit = {}
 ) {
-    var countdown by remember { mutableIntStateOf(25) }
+    var countdown by remember { mutableIntStateOf(40) }
 
     LaunchedEffect(isMeasuring) {
         if (isMeasuring) {
-            countdown = 25
+            countdown = 40
             while (countdown > 0) {
                 delay(1000)
                 countdown--
@@ -123,7 +123,7 @@ fun ContextualPulseCard(
                                     Text(" · ", color = CustomTextSecondary)
                                 }
                                 if (hrvValue != null) {
-                                    Text("${"%.0f".format(hrvValue)}", color = CustomTextPrimary)
+                                    Text("%.0f".format(hrvValue), color = CustomTextPrimary)
                                     Text(" ms", color = CustomTextSecondary, style = MaterialTheme.typography.bodySmall)
                                 }
                             }
@@ -144,8 +144,8 @@ fun StressGauge(
     moodScore: Float?,
     modifier: Modifier = Modifier
 ) {
-    // Max value should match your highest meaningful threshold
-    val maxStress = 40.0 // Slightly above "Exhaustion" threshold (30)
+    // Max value based on Kubios scale, providing room at the top.
+    val maxStress = 80.0
 
     val progress = remember(stressIndex) {
         stressIndex?.let { (it / maxStress).toFloat().coerceIn(0f, 1f) } ?: 0f
@@ -153,23 +153,25 @@ fun StressGauge(
     Log.d("StressGauge", "stressIndex: $stressIndex, progress: $progress")
 
 
-    // Marker positions as fractions of the gauge (matching thresholds)
-    val restMarker = 12.0 / maxStress      // 0.3
-    val loadMarker = 22.0 / maxStress      // 0.55
-    val highStressMarker = 30.0 / maxStress // 0.75
+    // Marker positions as fractions of the gauge (matching Kubios thresholds)
+    val relaxedMarker = 15.0 / maxStress
+    val calmMarker = 25.0 / maxStress
+    val moderateMarker = 35.0 / maxStress
+    val elevatedMarker = 50.0 / maxStress
 
     val (statusHeader, statusDescription, statusColor) = when {
         stressIndex == null -> Triple("No Data", "Measure to get stress level.", CustomTextSecondary)
-        stressIndex < 12 -> Triple("Rest", "Relaxed state, good recovery.", StatusLow)
-        stressIndex <= 22 -> Triple("Load", "Normal daily activity level.", StatusMedium)
-        stressIndex <= 30 -> Triple("High Stress", "The body is in a defensive/alarm state.", StatusHigh)
-        else -> Triple("Exhaustion", "Extreme load, risk of overtraining.", StatusUrgent)
+        stressIndex < 15 -> Triple("Relaxed", "Excellent recovery, your body is at ease.", StatusLow)
+        stressIndex < 25 -> Triple("Calm", "Good state, low physiological stress.", StatusMedium)
+        stressIndex < 35 -> Triple("Moderate", "Normal day-to-day stress, body is handling it.", StatusHigh)
+        stressIndex < 50 -> Triple("Elevated", "Increased stress, consider taking a break.", StatusUrgent)
+        else -> Triple("Exhausted", "High physiological strain, prioritise rest.", StatusUrgent)
     }
 
     val moodAdvice = when {
         moodScore == null || stressIndex == null -> ""
-        moodScore < 0.5f && stressIndex < 12 -> "You might just be tired, not stressed."
-        moodScore < 0.5f && stressIndex > 30 -> "Body is on high alert. Try breathing exercises."
+        moodScore < 0.5f && stressIndex < 25 -> "You might just be tired, not physiologically stressed."
+        moodScore < 0.5f && stressIndex > 50 -> "Body is on high alert. Prioritise rest and breathing exercises."
         else -> ""
     }
 
@@ -212,9 +214,10 @@ fun StressGauge(
                             Brush.horizontalGradient(
                                 colorStops = arrayOf(
                                     0.0f to StatusLow,
-                                    restMarker.toFloat() to StatusLow,
-                                    loadMarker.toFloat() to StatusMedium,
-                                    highStressMarker.toFloat() to StatusHigh,
+                                    relaxedMarker.toFloat() to StatusLow,
+                                    calmMarker.toFloat() to StatusMedium,
+                                    moderateMarker.toFloat() to StatusHigh,
+                                    elevatedMarker.toFloat() to StatusUrgent,
                                     1.0f to StatusUrgent
                                 )
                             )

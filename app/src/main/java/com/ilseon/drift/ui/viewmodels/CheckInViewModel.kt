@@ -42,6 +42,13 @@ class CheckInViewModel(
                 }
             }
         }
+
+        // Log all data for trend analysis
+        viewModelScope.launch {
+            repository.allLogs.collect { allLogs ->
+                Log.d("TrendAnalysis", "All logs: ${allLogs.joinToString { it.toString() + "\n" }}")
+            }
+        }
     }
 
     private fun saveSleepFromService() {

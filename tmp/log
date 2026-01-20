@@ -1,0 +1,198 @@
+2026-01-20 22:57:55.825  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Ready, avg: 51.7
+2026-01-20 22:57:55.961  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=90.7, range=170.1, peak=true
+2026-01-20 22:57:57.011  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=53.2, range=76.2, peak=false
+2026-01-20 22:57:57.371  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946277371
+2026-01-20 22:57:57.371  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  First pulse detected
+2026-01-20 22:57:57.545  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=64.8, range=16.7, peak=false
+2026-01-20 22:57:58.057  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=60.1, range=5.6, peak=false
+2026-01-20 22:57:58.558  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=54.6, range=11.0, peak=false
+2026-01-20 22:57:59.069  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=53.8, range=7.3, peak=false
+2026-01-20 22:57:59.442  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946279442
+2026-01-20 22:57:59.443  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 749ms
+2026-01-20 22:57:59.586  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=55.9, range=6.0, peak=false
+2026-01-20 22:58:00.077  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=56.7, range=5.4, peak=true
+2026-01-20 22:58:00.077  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946280076
+2026-01-20 22:58:00.077  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 634ms
+2026-01-20 22:58:00.587  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=55.0, range=5.9, peak=false
+2026-01-20 22:58:00.752  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946280752
+2026-01-20 22:58:00.753  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 676ms
+2026-01-20 22:58:01.087  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=54.7, range=5.8, peak=false
+2026-01-20 22:58:01.502  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946281502
+2026-01-20 22:58:01.503  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 750ms
+2026-01-20 22:58:01.597  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=57.5, range=6.8, peak=false
+2026-01-20 22:58:02.101  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=58.1, range=7.1, peak=false
+2026-01-20 22:58:02.171  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946282171
+2026-01-20 22:58:02.172  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 669ms
+2026-01-20 22:58:02.609  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=57.6, range=5.7, peak=false
+2026-01-20 22:58:02.777  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946282776
+2026-01-20 22:58:02.778  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 605ms
+2026-01-20 22:58:03.115  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=63.0, range=8.3, peak=true
+2026-01-20 22:58:03.486  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946283486
+2026-01-20 22:58:03.487  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 710ms
+2026-01-20 22:58:03.621  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=64.7, range=5.3, peak=true
+2026-01-20 22:58:04.125  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=59.7, range=7.9, peak=true
+2026-01-20 22:58:04.632  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=54.8, range=7.0, peak=false
+2026-01-20 22:58:05.139  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=59.0, range=8.1, peak=false
+2026-01-20 22:58:05.513  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946285513
+2026-01-20 22:58:05.514  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 713ms
+2026-01-20 22:58:05.647  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=62.2, range=7.5, peak=false
+2026-01-20 22:58:06.153  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=65.1, range=5.3, peak=false
+2026-01-20 22:58:06.187  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946286187
+2026-01-20 22:58:06.188  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 674ms
+2026-01-20 22:58:06.659  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=62.8, range=5.1, peak=false
+2026-01-20 22:58:06.894  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946286894
+2026-01-20 22:58:06.895  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 707ms
+2026-01-20 22:58:07.163  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=68.3, range=6.3, peak=false
+2026-01-20 22:58:07.669  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=61.8, range=8.5, peak=false
+2026-01-20 22:58:08.177  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=60.6, range=6.1, peak=false
+2026-01-20 22:58:08.583  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946288582
+2026-01-20 22:58:08.583  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 708ms
+2026-01-20 22:58:08.686  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=58.9, range=5.0, peak=false
+2026-01-20 22:58:09.189  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=65.3, range=7.0, peak=false
+2026-01-20 22:58:09.258  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946289257
+2026-01-20 22:58:09.258  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 675ms
+2026-01-20 22:58:09.695  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=65.3, range=4.9, peak=false
+2026-01-20 22:58:09.965  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946289965
+2026-01-20 22:58:09.966  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 708ms
+2026-01-20 22:58:10.207  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=64.5, range=4.5, peak=false
+2026-01-20 22:58:10.672  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946290672
+2026-01-20 22:58:10.673  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 707ms
+2026-01-20 22:58:10.708  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=64.6, range=3.7, peak=false
+2026-01-20 22:58:11.213  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=62.5, range=5.3, peak=false
+2026-01-20 22:58:11.355  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946291354
+2026-01-20 22:58:11.357  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 682ms
+2026-01-20 22:58:11.720  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=61.0, range=5.6, peak=true
+2026-01-20 22:58:12.027  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946292027
+2026-01-20 22:58:12.028  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 673ms
+2026-01-20 22:58:12.228  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=59.6, range=4.7, peak=false
+2026-01-20 22:58:12.738  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=62.1, range=4.8, peak=true
+2026-01-20 22:58:12.739  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946292738
+2026-01-20 22:58:12.739  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 711ms
+2026-01-20 22:58:13.243  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=61.9, range=4.2, peak=false
+2026-01-20 22:58:13.409  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946293409
+2026-01-20 22:58:13.410  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 671ms
+2026-01-20 22:58:13.747  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=62.3, range=4.8, peak=false
+2026-01-20 22:58:14.119  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946294119
+2026-01-20 22:58:14.120  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 710ms
+2026-01-20 22:58:14.253  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=59.4, range=6.2, peak=false
+2026-01-20 22:58:14.759  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=61.8, range=4.0, peak=true
+2026-01-20 22:58:14.759  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946294758
+2026-01-20 22:58:14.760  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 639ms
+2026-01-20 22:58:15.268  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=59.5, range=5.5, peak=false
+2026-01-20 22:58:15.470  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946295470
+2026-01-20 22:58:15.471  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 712ms
+2026-01-20 22:58:15.771  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=59.6, range=4.5, peak=false
+2026-01-20 22:58:16.151  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946296151
+2026-01-20 22:58:16.152  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 681ms
+2026-01-20 22:58:16.277  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=56.4, range=4.8, peak=false
+2026-01-20 22:58:16.786  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=61.1, range=5.5, peak=false
+2026-01-20 22:58:16.857  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946296857
+2026-01-20 22:58:16.857  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 706ms
+2026-01-20 22:58:17.292  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=59.9, range=4.6, peak=false
+2026-01-20 22:58:17.530  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946297529
+2026-01-20 22:58:17.532  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 672ms
+2026-01-20 22:58:17.799  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=58.4, range=5.2, peak=false
+2026-01-20 22:58:18.211  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946298210
+2026-01-20 22:58:18.213  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 681ms
+2026-01-20 22:58:18.304  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=56.9, range=4.2, peak=false
+2026-01-20 22:58:18.809  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=60.1, range=4.3, peak=false
+2026-01-20 22:58:18.914  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946298914
+2026-01-20 22:58:18.915  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 704ms
+2026-01-20 22:58:19.315  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=58.1, range=5.0, peak=false
+2026-01-20 22:58:19.623  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946299623
+2026-01-20 22:58:19.624  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 709ms
+2026-01-20 22:58:19.820  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=55.7, range=5.6, peak=false
+2026-01-20 22:58:20.333  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=61.5, range=6.6, peak=false
+2026-01-20 22:58:20.368  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946300367
+2026-01-20 22:58:20.369  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 744ms
+2026-01-20 22:58:20.840  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=61.1, range=4.3, peak=false
+2026-01-20 22:58:21.041  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946301041
+2026-01-20 22:58:21.042  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 674ms
+2026-01-20 22:58:21.341  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=60.1, range=5.1, peak=false
+2026-01-20 22:58:21.714  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946301713
+2026-01-20 22:58:21.715  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 672ms
+2026-01-20 22:58:21.847  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=58.2, range=4.3, peak=false
+2026-01-20 22:58:22.358  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=61.3, range=3.7, peak=false
+2026-01-20 22:58:22.422  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946302422
+2026-01-20 22:58:22.423  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 709ms
+2026-01-20 22:58:22.857  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=60.0, range=4.7, peak=false
+2026-01-20 22:58:23.136  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946303135
+2026-01-20 22:58:23.141  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 713ms
+2026-01-20 22:58:23.372  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=57.3, range=5.3, peak=false
+2026-01-20 22:58:23.844  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946303843
+2026-01-20 22:58:23.846  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 708ms
+2026-01-20 22:58:23.876  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=60.3, range=5.5, peak=false
+2026-01-20 22:58:24.377  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=61.5, range=4.6, peak=false
+2026-01-20 22:58:24.554  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946304553
+2026-01-20 22:58:24.555  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 710ms
+2026-01-20 22:58:24.884  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=61.5, range=4.4, peak=false
+2026-01-20 22:58:25.223  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946305222
+2026-01-20 22:58:25.223  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 669ms
+2026-01-20 22:58:25.394  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=57.0, range=5.0, peak=false
+2026-01-20 22:58:25.897  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=61.3, range=5.3, peak=true
+2026-01-20 22:58:25.898  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946305897
+2026-01-20 22:58:25.898  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 675ms
+2026-01-20 22:58:26.406  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=60.2, range=5.5, peak=false
+2026-01-20 22:58:26.642  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946306642
+2026-01-20 22:58:26.643  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 745ms
+2026-01-20 22:58:26.918  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=59.4, range=5.0, peak=false
+2026-01-20 22:58:27.354  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946307354
+2026-01-20 22:58:27.355  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 712ms
+2026-01-20 22:58:27.418  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=59.8, range=5.5, peak=false
+2026-01-20 22:58:27.921  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=62.4, range=4.5, peak=false
+2026-01-20 22:58:28.058  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946308058
+2026-01-20 22:58:28.059  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 704ms
+2026-01-20 22:58:28.431  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=61.3, range=4.8, peak=true
+2026-01-20 22:58:28.765  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946308764
+2026-01-20 22:58:28.765  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 706ms
+2026-01-20 22:58:28.942  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=58.2, range=5.0, peak=false
+2026-01-20 22:58:29.447  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=61.6, range=4.7, peak=true
+2026-01-20 22:58:29.447  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946309447
+2026-01-20 22:58:29.448  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 683ms
+2026-01-20 22:58:29.452  4460-4577  WM-WorkerWrapper        com.ilseon.drift                     I  Worker result SUCCESS for Work [ id=2894bc56-b8e4-43df-9c7b-b1900939a248, tags={ androidx.glance.session.SessionWorker } ]
+2026-01-20 22:58:29.456  4460-4460  WM-Processor            com.ilseon.drift                     D  Processor 2894bc56-b8e4-43df-9c7b-b1900939a248 executed; reschedule = false
+2026-01-20 22:58:29.456  4460-4460  WM-SystemJobService     com.ilseon.drift                     D  2894bc56-b8e4-43df-9c7b-b1900939a248 executed on JobScheduler
+2026-01-20 22:58:29.459  4460-4577  WM-GreedyScheduler      com.ilseon.drift                     D  Cancelling work ID 2894bc56-b8e4-43df-9c7b-b1900939a248
+2026-01-20 22:58:29.949  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=61.4, range=4.9, peak=false
+2026-01-20 22:58:30.117  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946310117
+2026-01-20 22:58:30.118  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 670ms
+2026-01-20 22:58:30.459  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=61.4, range=5.7, peak=false
+2026-01-20 22:58:30.860  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946310860
+2026-01-20 22:58:30.861  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 743ms
+2026-01-20 22:58:30.960  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=59.8, range=5.2, peak=false
+2026-01-20 22:58:31.431  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946311431
+2026-01-20 22:58:31.432  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 571ms
+2026-01-20 22:58:31.467  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=64.2, range=5.1, peak=false
+2026-01-20 22:58:31.975  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=62.1, range=4.8, peak=false
+2026-01-20 22:58:32.245  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946312245
+2026-01-20 22:58:32.245  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 814ms
+2026-01-20 22:58:32.482  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=60.1, range=4.8, peak=false
+2026-01-20 22:58:32.925  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946312924
+2026-01-20 22:58:32.926  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 679ms
+2026-01-20 22:58:32.985  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=59.7, range=5.5, peak=false
+2026-01-20 22:58:33.491  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=63.2, range=6.0, peak=false
+2026-01-20 22:58:33.592  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946313592
+2026-01-20 22:58:33.593  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 668ms
+2026-01-20 22:58:34.000  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=62.9, range=5.8, peak=false
+2026-01-20 22:58:34.376  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946314376
+2026-01-20 22:58:34.377  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 784ms
+2026-01-20 22:58:34.502  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=61.9, range=5.2, peak=false
+2026-01-20 22:58:35.009  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=67.6, range=6.7, peak=false
+2026-01-20 22:58:35.043  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946315042
+2026-01-20 22:58:35.043  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 666ms
+2026-01-20 22:58:35.519  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=64.2, range=5.4, peak=false
+2026-01-20 22:58:35.794  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946315793
+2026-01-20 22:58:35.794  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 751ms
+2026-01-20 22:58:36.020  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=63.1, range=5.4, peak=false
+2026-01-20 22:58:36.528  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=66.4, range=6.5, peak=true
+2026-01-20 22:58:36.528  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946316528
+2026-01-20 22:58:36.529  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 735ms
+2026-01-20 22:58:37.044  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  val=66.5, range=6.0, peak=false
+2026-01-20 22:58:37.274  4460-4774  CameraPreview           com.ilseon.drift                     D  Pulse callback: 1768946317274
+2026-01-20 22:58:37.275  4460-4774  PulseAnalyzer           com.ilseon.drift                     D  Pulse: 746ms
+2026-01-20 22:58:37.390  4460-4460  PulseAnalyzer HRV       com.ilseon.drift                     D  Stable pulses: 48
+2026-01-20 22:58:37.390  4460-4460  PulseAnalyzer HRV       com.ilseon.drift                     D  Valid intervals: 45
+2026-01-20 22:58:37.391  4460-4460  PulseAnalyzer HRV       com.ilseon.drift                     D  New HRV: 37.64438869207468
+2026-01-20 22:58:37.391  4460-4460  PulseAnalyzer HRV       com.ilseon.drift                     D  New BPM: 86
+2026-01-20 22:58:37.391  4460-4460  PulseAnalyzer HRV       com.ilseon.drift                     D  New Stress: 11.987756943891661
+2026-01-20 22:58:37.450  4460-4460  StressGauge             com.ilseon.drift                     D  stressIndex: 11.987756943891661, progress: 0.14984696

@@ -123,26 +123,22 @@ fun MainScreen(
     }
 
     var firstPulseTime by remember { mutableStateOf<Long?>(null) }
-    var stablePulseStartIndex by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(firstPulseTime) {
         if (isMeasuringHrv && firstPulseTime != null) {
-            delay(20000)
+            delay(40000)
 
             val timestamps = pulseTimestamps.toList()
             val pulseCount = timestamps.size
 
-            if (pulseCount > 5) {
-                val stablePulses = timestamps.drop(1)
+            if (pulseCount > 10) {
+                val stablePulses = timestamps.drop(5)
                 val intervals = stablePulses.zipWithNext { a, b -> b - a }
                 val validIntervals = intervals.filter { it in 550L..1200L }
                 Log.d("PulseAnalyzer HRV", "Stable pulses: ${stablePulses.size}")
                 Log.d("PulseAnalyzer HRV", "Valid intervals: ${validIntervals.size}")
-                Log.d("PulseAnalyzer HRV", "Valid intervals: ${validIntervals.size}")
 
-
-
-                if (validIntervals.size >= 4) {
+                if (validIntervals.size >= 10) {
                     newHrvValue = calculateRmssdFromIntervals(validIntervals)
                     bpmValue = calculateBpmFromIntervals(validIntervals)
                     stressIndex = calculateStressIndex(validIntervals)
@@ -152,9 +148,6 @@ fun MainScreen(
                     Log.d("PulseAnalyzer HRV", "New HRV: $newHrvValue")
                     Log.d("PulseAnalyzer HRV", "New BPM: $bpmValue")
                     Log.d("PulseAnalyzer HRV", "New Stress: $stressIndex")
-
-
-
                 } else {
                     Log.d("PulseAnalyzer HRV", "Not enough valid intervals: ${validIntervals.size}")
                 }
@@ -170,12 +163,10 @@ fun MainScreen(
         if (isMeasuringHrv) {
             pulseTimestamps.clear()
             firstPulseTime = null
-            stablePulseStartIndex = 0
             newHrvValue = null
             stressIndex = null
         }
     }
-
 
     if (showCheckInModal) {
         CheckInModal(
@@ -209,7 +200,13 @@ fun MainScreen(
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                EnergyOrb(targetColor = orbColor, isPulsing = isMeasuringHrv)
+                EnergyOrb(
+                    targetColor = orbColor,
+                    isMeasuring = isMeasuringHrv,
+                    hrv = (newHrvValue ?: latestCheckIn?.hrvValue)?.toFloat(),
+                    stressIndex = (stressIndex ?: latestCheckIn?.stressIndex)?.toFloat(),
+                    energy = energy
+                )
             }
 
             // Data cards
@@ -260,7 +257,6 @@ fun MainScreen(
                             pulseTimestamps.add(timestamp)
                             if (firstPulseTime == null) {
                                 firstPulseTime = timestamp
-                                stablePulseStartIndex = 0
                             }
                         }
                     )
