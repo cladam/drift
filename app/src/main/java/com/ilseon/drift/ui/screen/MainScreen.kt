@@ -67,7 +67,8 @@ import kotlin.text.clear
 fun MainScreen(
     checkInViewModel: CheckInViewModel,
     showCheckInFromNotification: Boolean,
-    onCheckInHandled: () -> Unit
+    onCheckInHandled: () -> Unit,
+    onNavigateToAnalytics: () -> Unit
 ) {
     val latestCheckIn: DriftLog? by checkInViewModel.latestCheckIn.collectAsState()
     val latestSleepRecord: DriftLog? by checkInViewModel.latestSleepRecord.collectAsState()
@@ -270,7 +271,8 @@ fun MainScreen(
                     title = "Analytics",
                     icon = Icons.AutoMirrored.Filled.ShowChart,
                     modifier = Modifier.fillMaxWidth(),
-                    logs = weeklyTrend
+                    logs = weeklyTrend,
+                    onClick = onNavigateToAnalytics
                 )
             }
 

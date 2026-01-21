@@ -20,7 +20,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.ilseon.drift.notifications.DriftNotificationManager
+import com.ilseon.drift.ui.screen.AnalyticsScreen
 import com.ilseon.drift.ui.screen.MainScreen
 import com.ilseon.drift.ui.theme.DriftTheme
 import com.ilseon.drift.ui.viewmodels.CheckInViewModel
@@ -88,13 +92,25 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             DriftTheme {
+                val navController = rememberNavController()
                 val showCheckInFromWidget by checkInViewModel.showCheckInFromWidget.collectAsState()
 
-                MainScreen(
-                    checkInViewModel = checkInViewModel,
-                    showCheckInFromNotification = showCheckInFromWidget,
-                    onCheckInHandled = { checkInViewModel.onCheckInFromWidgetHandled() }
-                )
+                NavHost(navController = navController, startDestination = "main") {
+                    composable("main") {
+                        MainScreen(
+                            checkInViewModel = checkInViewModel,
+                            showCheckInFromNotification = showCheckInFromWidget,
+                            onCheckInHandled = { checkInViewModel.onCheckInFromWidgetHandled() },
+                            onNavigateToAnalytics = { navController.navigate("analytics") }
+                        )
+                    }
+                    composable("analytics") {
+                        AnalyticsScreen(
+                            checkInViewModel = checkInViewModel,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+                }
             }
 
             if (showNotificationRationaleDialog) {

@@ -15,13 +15,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
-import kotlin.compareTo
-import kotlin.div
-import kotlin.text.toInt
 
 class CheckInViewModel(
     application: Application,
@@ -40,13 +39,6 @@ class CheckInViewModel(
                 if (!isTracking && SleepTrackingState.sleepDurationMs.value > 0) {
                     saveSleepFromService()
                 }
-            }
-        }
-
-        // Log all data for trend analysis
-        viewModelScope.launch {
-            repository.allLogs.collect { allLogs ->
-                Log.d("TrendAnalysis", "All logs: ${allLogs.joinToString { it.toString() + "\n" }}")
             }
         }
     }
@@ -77,6 +69,12 @@ class CheckInViewModel(
         }
     }
 
+    val allLogs: StateFlow<List<DriftLog>> = repository.allLogs
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     val latestCheckIn: StateFlow<DriftLog?> = repository.latestPulse
         .stateIn(
@@ -180,10 +178,40 @@ class CheckInViewModel(
             initialValue = emptyList()
         )
 
+    val sevenDayHrvAverage: StateFlow<Double> = weeklyTrend.map { logs ->
+        val morningHrvs = logs.filter { it.hrvValue != null && isMorning(it.timestamp) }.map { it.hrvValue!! }
+        if (morningHrvs.isNotEmpty()) morningHrvs.average() else 60.0 // Default to a baseline
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 60.0)
+
+    val yesterdayEveningStressIndex: StateFlow<Double?> = weeklyTrend.map { logs ->
+        logs.lastOrNull { it.stressIndex != null && isYesterdayEvening(it.timestamp) }?.stressIndex
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+
     private fun sevenDaysAgo(): Long {
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, -7)
         return calendar.timeInMillis
+    }
+
+    private fun isMorning(timestamp: Long): Boolean {
+        val calendar = Calendar.getInstance().apply { timeInMillis = timestamp }
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        return hour in 5..11 // 5 AM to 11 AM
+    }
+
+    private fun isYesterdayEvening(timestamp: Long): Boolean {
+        val yesterday = Calendar.getInstance()
+        yesterday.add(Calendar.DAY_OF_YEAR, -1)
+
+        val logTime = Calendar.getInstance()
+        logTime.timeInMillis = timestamp
+
+        val hour = logTime.get(Calendar.HOUR_OF_DAY)
+
+        return yesterday.get(Calendar.YEAR) == logTime.get(Calendar.YEAR) &&
+                yesterday.get(Calendar.DAY_OF_YEAR) == logTime.get(Calendar.DAY_OF_YEAR) &&
+                hour in 18..23 // 6 PM to 11 PM
     }
 }
 

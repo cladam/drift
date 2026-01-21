@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,10 +47,11 @@ fun AnalyticsCard(
     title: String,
     icon: ImageVector? = null,
     modifier: Modifier = Modifier,
-    logs: List<DriftLog>
+    logs: List<DriftLog>,
+    onClick: () -> Unit = {}
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier.clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = LightGrey)
     ) {
         Row(
@@ -93,9 +95,9 @@ fun WeekStrip(
         logs.maxByOrNull { it.timestamp }
     }
 
-    val days = (0..6).map {
+    val days = (0..6).map { day ->
         val dayCal = Calendar.getInstance()
-        dayCal.add(Calendar.DAY_OF_YEAR, -6 + it)
+        dayCal.add(Calendar.DAY_OF_YEAR, -6 + day)
         dayCal
     }
 
