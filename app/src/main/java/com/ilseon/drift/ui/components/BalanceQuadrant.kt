@@ -86,7 +86,7 @@ private fun BalanceQuadrant(
     val textPaint = android.graphics.Paint().apply {
         isAntiAlias = true
         textSize = with(density) { 10.sp.toPx() }
-        color = CustomTextSecondary.copy(alpha = 0.5f).toArgb()
+        color = CustomTextSecondary.copy(alpha = 0.6f).toArgb()
     }
 
     Canvas(modifier = modifier
@@ -99,13 +99,13 @@ private fun BalanceQuadrant(
         // Draw quadrant lines (dashed)
         val pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
         drawLine(
-            color = CustomTextSecondary.copy(alpha = 0.3f),
+            color = CustomTextSecondary.copy(alpha = 0.4f),
             start = Offset(midX, 0f),
             end = Offset(midX, size.height),
             pathEffect = pathEffect
         )
         drawLine(
-            color = CustomTextSecondary.copy(alpha = 0.3f),
+            color = CustomTextSecondary.copy(alpha = 0.4f),
             start = Offset(0f, midY),
             end = Offset(size.width, midY),
             pathEffect = pathEffect

@@ -77,6 +77,13 @@ fun AnalyticsCard(
                 .fillMaxWidth(),
             logs = logs
         )
+        Text(
+            text = "Tap for more insights →",
+            style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+            color = MutedTeal,
+            modifier = Modifier
+                .padding(start = 16.dp, bottom = 12.dp)
+        )
     }
 }
 

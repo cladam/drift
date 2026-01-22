@@ -11,7 +11,10 @@ Traditional health applications often overwhelm the user with dense charts, pers
 
 ## Key Features
 
-* **Energy Orb:** A central visual indicator that shifts in colour and pulse based on your recovery. It communicates your "status" without requiring you to read a single number.
+* **Energy Orb:** The central feature of the dashboard. A visual indicator that shifts in colour and pulse based on your recovery. It communicates your "status" without requiring you to read a single number.
+* **Readiness Score:** A dedicated card providing an "Executive Summary" number. It combines your morning Heart Rate Variability (HRV) and Stress Index (SI) for a clear, at-a-glance measure of your daily capacity.
+* **Trend Sparklines:** Scannable sparkline charts for HRV, Stress Index, and Heart Rate (BPM). These cards show your 7-day trend and highlight the deviation from your average, making it easy to spot changes in your physiological state.
+* **Balance Quadrant:** A quadrant-based visualization plotting your current Stress Index against Heart Rate Variability (HRV). It helps you understand the interplay between your body's stress and resilience, showing whether you are in a state of 'High Stress, Low Resilience' or 'Low Stress, High Resilience'.
 * **Stress Index (Kubios/Baevsky):** Measures physiological stress via the camera (PPG). By analysing Heart Rate Variability (HRV), Drift provides objective confirmation of whether your nervous system is at rest or on high alert.
 * **Vibe Strip (7-Day Trend):** A minimalist weekly view using colour-coded segments to display your historical capacity at a glance.
 * **Peak & Valley:** A unique visualisation that contrasts your daily average mood (background) against your absolute current state (border indicator).
@@ -50,9 +53,6 @@ By understanding your energy levels in Drift, you can make more informed decisio
 #### The Calculation
 
 Unlike simple Heart Rate (BPM), the Stress Index (SI) analyses the distribution and regularity of **RR intervals** (the time between heartbeats).
-
-We calculate the index using the following formula:
-
 
 ![](images/SI-formula.png)
 

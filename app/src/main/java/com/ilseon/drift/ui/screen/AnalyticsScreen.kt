@@ -1,6 +1,7 @@
 package com.ilseon.drift.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,10 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ilseon.drift.ui.components.BalanceQuadrantCard
 import com.ilseon.drift.ui.components.ReadinessCard
+import com.ilseon.drift.ui.components.SleepTrendWithInsightCard
 import com.ilseon.drift.ui.components.TrendSparklineCard
 import com.ilseon.drift.ui.theme.CustomTextSecondary
 import com.ilseon.drift.ui.theme.DarkGrey
 import com.ilseon.drift.ui.viewmodels.CheckInViewModel
+import kotlin.text.toDouble
+import kotlin.times
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,29 +87,76 @@ fun AnalyticsScreen(
             }
 
             item {
+                Text(
+                    "Recovery & Balance",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                )
+            }
+
+            item {
                 TrendSparklineCard(
                     title = "HRV Trend (7-day)",
-                    data = weeklyTrend.mapNotNull { it.hrvValue }
+                    data = weeklyTrend.mapNotNull { it.hrvValue },
+                    higherIsBetter = true
+                )
+            }
+
+            item {
+                Text(
+                    "Physiological Load",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
                 )
             }
 
             item {
                 TrendSparklineCard(
                     title = "Stress Index Trend (7-day)",
-                    data = weeklyTrend.mapNotNull { it.stressIndex }
+                    data = weeklyTrend.mapNotNull { it.stressIndex },
+                    higherIsBetter = false
+                )
+            }
+
+            item {
+                TrendSparklineCard(
+                    title = "Heartbeat Trend (7-day)",
+                    data = weeklyTrend.map { it.bpm?.toDouble() ?: 0.0 },
+                    higherIsBetter = false,
+                    unit = "BPM"
                 )
             }
 
             item {
                 Text(
-                    "All Time Data",
+                    "Sleep & Recovery",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
                 )
             }
 
-            items(allLogs) { log ->
-                Text(log.toString(), color = CustomTextSecondary)
+            item {
+                SleepTrendWithInsightCard(
+                    weeklyTrend = weeklyTrend,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            item {
+                Text(
+                    "Emotional Wellbeing",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                )
+            }
+
+            item {
+                TrendSparklineCard(
+                    title = "Mood Score (7-day)",
+                    data = weeklyTrend.map { (it.moodScore?.times(100))?.toDouble() ?: 0.0 },
+                    higherIsBetter = true,
+                    unit = "%"
+                )
             }
         }
     }

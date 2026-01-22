@@ -60,7 +60,7 @@ fun ContextualPulseCard(
 
     LaunchedEffect(isMeasuring) {
         if (isMeasuring) {
-            countdown = 40
+            countdown = 43
             while (countdown > 0) {
                 delay(1000)
                 countdown--

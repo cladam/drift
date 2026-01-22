@@ -1,8 +1,12 @@
 package com.ilseon.drift.processing
 
 import android.util.Log
+import kotlin.compareTo
+import kotlin.div
 import kotlin.math.abs
 import kotlin.math.sqrt
+import kotlin.text.toDouble
+import kotlin.times
 
 // Artifact correction based on HRV4Training's methodology.
 private fun correctArtifacts(intervals: List<Long>): List<Long> {
@@ -29,15 +33,15 @@ private fun correctArtifacts(intervals: List<Long>): List<Long> {
     return cleaned
 }
 
-fun calculateRmssdFromIntervals(intervals: List<Long>): Double {
-    if (intervals.size < 2) return 0.0
+fun calculateRmssdFromIntervals(intervals: List<Long>): Double? {
+    if (intervals.size < 2) return null
     val cleanedIntervals = correctArtifacts(intervals)
-    if (cleanedIntervals.size < 2) return 0.0
+    if (cleanedIntervals.size < 2) return null
 
     val squaredDiffs = cleanedIntervals.zipWithNext { a, b -> ((b - a) * (b - a)).toDouble() }
     val meanSquaredDiff = squaredDiffs.average()
 
-    return if (meanSquaredDiff.isNaN()) 0.0 else sqrt(meanSquaredDiff)
+    return if (meanSquaredDiff.isNaN()) null else sqrt(meanSquaredDiff)
 }
 
 fun calculateBpmFromIntervals(intervals: List<Long>): Int {
@@ -48,19 +52,19 @@ fun calculateBpmFromIntervals(intervals: List<Long>): Int {
     return if (avgInterval > 0) (60000.0 / avgInterval).toInt() else 0
 }
 
-fun calculateStressIndex(rrIntervals: List<Long>): Double {
+fun calculateStressIndex(rrIntervals: List<Long>): Double? {
     val cleanedIntervals = correctArtifacts(rrIntervals)
-    if (cleanedIntervals.size < 2) return 0.0
+    if (cleanedIntervals.size < 2) return null
 
-    val maxRR = cleanedIntervals.maxOrNull()?.toDouble() ?: 0.0
-    val minRR = cleanedIntervals.minOrNull()?.toDouble() ?: 0.0
+    val maxRR = cleanedIntervals.maxOrNull()?.toDouble() ?: return null
+    val minRR = cleanedIntervals.minOrNull()?.toDouble() ?: return null
     val mxDMn = (maxRR - minRR) / 1000.0 // seconds
-    if (mxDMn == 0.0) return 0.0
+    if (mxDMn == 0.0) return null
 
     val bins = cleanedIntervals.map { (it / 50) * 50 }
-    val modeBin = bins.groupBy { it }.maxByOrNull { it.value.size }?.key ?: 0L
+    val modeBin = bins.groupBy { it }.maxByOrNull { it.value.size }?.key ?: return null
     val mo = modeBin / 1000.0 // seconds
-    if (mo == 0.0) return 0.0
+    if (mo == 0.0) return null
 
     val modeCount = bins.count { it == modeBin }
     val aMo = (modeCount.toDouble() / cleanedIntervals.size) * 100.0
@@ -69,5 +73,5 @@ fun calculateStressIndex(rrIntervals: List<Long>): Double {
 
     val kubiosSI = sqrt(baevskySI)
 
-    return if (kubiosSI.isFinite()) kubiosSI else 0.0
+    return if (kubiosSI.isFinite()) kubiosSI else null
 }
