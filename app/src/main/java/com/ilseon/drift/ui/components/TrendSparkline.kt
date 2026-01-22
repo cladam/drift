@@ -73,13 +73,19 @@ private fun TrendSparkline(
                 .height(60.dp)
                 .fillMaxWidth()
         ) {
-            val valueRange = if (maxVal - minVal > 0) maxVal - minVal else 1.0
+            // Add vertical padding to the line for better visual breathing room.
+            val range = maxVal - minVal
+            val verticalPadding = if (range > 0) range * 0.1 else 1.0 // 10% padding
+
+            val paddedMin = (minVal - verticalPadding).coerceAtLeast(0.0)
+            val paddedMax = maxVal + verticalPadding
+            val displayRange = if (paddedMax - paddedMin > 0) paddedMax - paddedMin else 1.0
 
             val path = Path()
 
             data.forEachIndexed { index, value ->
                 val x = size.width * (index.toFloat() / (data.size - 1))
-                val y = size.height * (1 - ((value - minVal) / valueRange).toFloat())
+                val y = size.height * (1 - ((value - paddedMin) / displayRange).toFloat())
 
                 if (index == 0) {
                     path.moveTo(x, y)

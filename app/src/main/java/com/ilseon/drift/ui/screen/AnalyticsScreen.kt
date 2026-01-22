@@ -19,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.ilseon.drift.ui.components.BalanceQuadrantCard
 import com.ilseon.drift.ui.components.ReadinessCard
 import com.ilseon.drift.ui.components.TrendSparklineCard
 import com.ilseon.drift.ui.theme.CustomTextSecondary
@@ -33,6 +34,7 @@ fun AnalyticsScreen(
 ) {
     val allLogs by checkInViewModel.allLogs.collectAsState()
     val latestCheckIn by checkInViewModel.latestCheckIn.collectAsState()
+    val previousLog by checkInViewModel.previousLog.collectAsState()
     val latestSleepRecord by checkInViewModel.latestSleepRecord.collectAsState()
     val sevenDayHrvAverage by checkInViewModel.sevenDayHrvAverage.collectAsState()
     val yesterdayStressIndex by checkInViewModel.yesterdayEveningStressIndex.collectAsState()
@@ -67,6 +69,16 @@ fun AnalyticsScreen(
                     currentSi = latestCheckIn?.stressIndex,
                     yesterdaySi = yesterdayStressIndex,
                     sleepMinutes = latestSleepRecord?.sleepDurationMinutes
+                )
+            }
+
+            item {
+                BalanceQuadrantCard(
+                    hrv = latestCheckIn?.hrvValue,
+                    stressIndex = latestCheckIn?.stressIndex,
+                    previousHrv = previousLog?.hrvValue,
+                    previousStressIndex = previousLog?.stressIndex,
+                    allLogs = allLogs
                 )
             }
 

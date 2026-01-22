@@ -62,7 +62,7 @@ fun ReadinessCard(
             val insight = when {
                 readinessScore > 1.5 -> "Your system is in peak condition."
                 readinessScore > 0.9 -> "Stable balance."
-                else -> "Low energy – prioritize rest."
+                else -> "Low energy – prioritise rest."
             }
             Text(insight, style = MaterialTheme.typography.headlineSmall)
 
@@ -86,6 +86,10 @@ fun ReadinessCard(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
+
+            // implement a 7-day Weighted Moving Average.
+            // one exceptionally good night shouldn't make a "normal"
+            // healthy morning feel like a failure.
 
             // The "Why" - Passive Insights
             if (yesterdaySi != null && sleepMinutes != null) {

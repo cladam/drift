@@ -82,6 +82,11 @@ class CheckInViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = null
         )
+
+    val previousLog: StateFlow<DriftLog?> = allLogs.map {
+        it.getOrNull(1) // The second most recent log
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     val latestSleepRecord: StateFlow<DriftLog?> = repository.latestSleepRecord
         .stateIn(
             scope = viewModelScope,

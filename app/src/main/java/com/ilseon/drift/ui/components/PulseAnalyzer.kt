@@ -2,10 +2,6 @@ package com.ilseon.drift.ui.components
 
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
-import kotlin.collections.removeFirst
-import kotlin.compareTo
-import kotlin.div
-import kotlin.text.compareTo
 
 class PulseAnalyzer(
     private val onPulseDetected: (Long) -> Unit
@@ -22,39 +18,54 @@ class PulseAnalyzer(
     private var prevSmoothed = 0.0
     private var prevPrevSmoothed = 0.0
 
+    @androidx.annotation.OptIn(androidx.camera.core.ExperimentalGetImage::class)
     override fun analyze(image: ImageProxy) {
-        val buffer = image.planes[0].buffer
-        val data = ByteArray(buffer.remaining())
-        buffer.get(data)
+        if (image.format != android.graphics.ImageFormat.YUV_420_888) {
+            image.close()
+            return
+        }
+
+        val yPlane = image.planes[0]
+        val vPlane = image.planes[2] // V plane for red-difference chroma
+
+        val yBuffer = yPlane.buffer
+        val vBuffer = vPlane.buffer
 
         val width = image.width
         val height = image.height
-        var sum = 0L
+
+        var sumRed = 0.0
         var count = 0
 
+        // Focus on the center of the frame
         val startX = width / 3
         val endX = 2 * width / 3
         val startY = height / 3
         val endY = 2 * height / 3
 
+        // We only need Y and V for the red channel. Using step 2 for performance.
         for (y in startY until endY step 2) {
             for (x in startX until endX step 2) {
-                val index = y * width + x
-                if (index < data.size) {
-                    sum += data[index].toInt() and 0xFF
-                    count++
-                }
+                val yIndex = y * yPlane.rowStride + x * yPlane.pixelStride
+                val yValue = yBuffer.get(yIndex).toInt() and 0xFF
+
+                // V plane is subsampled by 2.
+                val vIndex = (y / 2) * vPlane.rowStride + (x / 2) * vPlane.pixelStride
+                val vValue = vBuffer.get(vIndex).toInt() and 0xFF
+
+                // YUV to Red conversion: R = Y + 1.402 * (V - 128)
+                val red = yValue + 1.402 * (vValue - 128)
+
+                sumRed += red
+                count++
             }
         }
 
-        val currentValue = if (count > 0) sum.toDouble() / count else 0.0
+        val currentValue = if (count > 0) sumRed / count else 0.0
         val currentTime = System.currentTimeMillis()
         frameCount++
 
-        if (currentValue !in 40.0..250.0) {
-            image.close()
-            return
-        }
+        // The rest of the analysis logic remains the same, operating on the new `currentValue`.
 
         signalBuffer.addLast(currentValue)
         if (signalBuffer.size > 60) signalBuffer.removeFirst()
@@ -68,7 +79,7 @@ class PulseAnalyzer(
 
         if (!baselineEstablished && frameCount > 20) {
             baselineEstablished = true
-            android.util.Log.d("PulseAnalyzer", "Ready, avg: ${"%.1f".format(smoothed)}")
+            android.util.Log.d("PulseAnalyzer", "Baseline established. Initial Red Avg: ${String.format("%.1f", smoothed)}")
         }
 
         if (!baselineEstablished) {
@@ -87,20 +98,16 @@ class PulseAnalyzer(
         val isPeak = prevSmoothed > prevPrevSmoothed && prevSmoothed > smoothed
 
         val peakHeight = prevSmoothed - windowMin
-        val isSignificant = dynamicRange > 1.0 && peakHeight > dynamicRange * 0.4
-
-        if (frameCount % 15 == 0) {
-            android.util.Log.d("PulseAnalyzer", "val=${"%.1f".format(smoothed)}, range=${"%.1f".format(dynamicRange)}, peak=$isPeak")
-        }
+        // Dynamic range check helps filter out noise when the finger isn't covering the camera well.
+        val isSignificant = dynamicRange > 0.5 && peakHeight > dynamicRange * 0.4
 
         if (isPeak && isSignificant && timeSinceLastPeak >= minPeakInterval) {
             val isValidInterval = timeSinceLastPeak <= maxPeakInterval || lastPeakTime == 0L
 
-            // Consistency check: skip for first few pulses while building history
             val isConsistent = if (recentIntervals.size >= 3 && lastPeakTime != 0L) {
                 val avgInterval = recentIntervals.average()
                 val deviation = kotlin.math.abs(timeSinceLastPeak - avgInterval) / avgInterval
-                deviation < 0.35
+                deviation < 0.35 // Only accept beats that are within 35% of the recent average interval
             } else true
 
             if (isValidInterval && isConsistent) {
@@ -108,9 +115,9 @@ class PulseAnalyzer(
                 if (lastPeakTime != 0L) {
                     recentIntervals.addLast(timeSinceLastPeak)
                     if (recentIntervals.size > 10) recentIntervals.removeFirst()
-                    android.util.Log.d("PulseAnalyzer", "Pulse: ${timeSinceLastPeak}ms")
+                    android.util.Log.d("PulseAnalyzer", "Pulse: ${timeSinceLastPeak}ms (Red Channel)")
                 } else {
-                    android.util.Log.d("PulseAnalyzer", "First pulse detected")
+                    android.util.Log.d("PulseAnalyzer", "First pulse detected (Red Channel)")
                 }
             }
             lastPeakTime = currentTime

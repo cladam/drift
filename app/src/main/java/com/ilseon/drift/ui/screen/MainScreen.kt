@@ -29,7 +29,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,15 +41,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.ilseon.drift.data.DriftLog
+import com.ilseon.drift.processing.calculateBpmFromIntervals
+import com.ilseon.drift.processing.calculateRmssdFromIntervals
+import com.ilseon.drift.processing.calculateStressIndex
 import com.ilseon.drift.ui.components.AnalyticsCard
 import com.ilseon.drift.ui.components.CheckInModal
 import com.ilseon.drift.ui.components.ContextualPulseCard
 import com.ilseon.drift.ui.components.ContextualSleepCard
 import com.ilseon.drift.ui.components.EnergyOrb
 import com.ilseon.drift.ui.components.StressGauge
-import com.ilseon.drift.ui.components.calculateBpmFromIntervals
-import com.ilseon.drift.ui.components.calculateRmssdFromIntervals
-import com.ilseon.drift.ui.components.calculateStressIndex
 import com.ilseon.drift.ui.theme.CustomTextPrimary
 import com.ilseon.drift.ui.theme.DarkGrey
 import com.ilseon.drift.ui.theme.LightGrey
@@ -60,7 +59,6 @@ import com.ilseon.drift.ui.theme.StatusMedium
 import com.ilseon.drift.ui.theme.StatusUrgent
 import com.ilseon.drift.ui.viewmodels.CheckInViewModel
 import kotlinx.coroutines.delay
-import kotlin.text.clear
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

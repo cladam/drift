@@ -45,7 +45,6 @@ import com.ilseon.drift.ui.theme.StatusLow
 import com.ilseon.drift.ui.theme.StatusMedium
 import com.ilseon.drift.ui.theme.StatusUrgent
 import kotlinx.coroutines.delay
-import kotlin.text.toFloat
 
 @Composable
 fun ContextualPulseCard(
@@ -165,13 +164,13 @@ fun StressGauge(
         stressIndex < 25 -> Triple("Calm", "Good state, low physiological stress.", StatusMedium)
         stressIndex < 35 -> Triple("Moderate", "Normal day-to-day stress, body is handling it.", StatusHigh)
         stressIndex < 50 -> Triple("Elevated", "Increased stress, consider taking a break.", StatusUrgent)
-        else -> Triple("Exhausted", "High physiological strain, prioritise rest.", StatusUrgent)
+        else -> Triple("Exhausted", "High physiological strain, prioritize rest.", StatusUrgent)
     }
 
     val moodAdvice = when {
         moodScore == null || stressIndex == null -> ""
         moodScore < 0.5f && stressIndex < 25 -> "You might just be tired, not physiologically stressed."
-        moodScore < 0.5f && stressIndex > 50 -> "Body is on high alert. Prioritise rest and breathing exercises."
+        moodScore < 0.5f && stressIndex > 50 -> "Body is on high alert. Prioritize rest and breathing exercises."
         else -> ""
     }
 
@@ -247,55 +246,4 @@ fun StressGauge(
             }
         }
     }
-}
-
-fun calculateRmssdFromIntervals(intervals: List<Long>): Double {
-    if (intervals.size < 2) return 0.0
-
-    // Remove outliers using IQR method
-    val sorted = intervals.sorted()
-    val q1 = sorted[sorted.size / 4]
-    val q3 = sorted[3 * sorted.size / 4]
-    val iqr = q3 - q1
-    val lowerBound = q1 - 1.5 * iqr
-    val upperBound = q3 + 1.5 * iqr
-
-    val filtered = intervals.filter { it >= lowerBound && it <= upperBound }
-
-    if (filtered.size < 2) return 0.0
-
-    val squaredDiffs = filtered.zipWithNext { a, b -> ((b - a) * (b - a)).toDouble() }
-    return kotlin.math.sqrt(squaredDiffs.average())
-}
-
-fun calculateBpmFromIntervals(intervals: List<Long>): Int {
-    if (intervals.isEmpty()) return 0
-    val avgInterval = intervals.average()
-    return (60000.0 / avgInterval).toInt()
-}
-
-fun calculateStressIndex(rrIntervals: List<Long>): Double {
-    if (rrIntervals.size < 2) return 0.0
-
-    // 1. Calculate original Baevsky Stress Index
-    val maxRR = rrIntervals.maxOrNull()?.toDouble() ?: 0.0
-    val minRR = rrIntervals.minOrNull()?.toDouble() ?: 0.0
-    val mxDMn = (maxRR - minRR) / 1000.0 // seconds
-    if (mxDMn == 0.0) return 0.0
-
-    val bins = rrIntervals.map { (it / 50) * 50 }
-    val modeBin = bins.groupBy { it }.maxByOrNull { it.value.size }?.key ?: 0L
-    val mo = modeBin / 1000.0 // seconds
-    if (mo == 0.0) return 0.0
-
-    val modeCount = bins.count { it == modeBin }
-    val aMo = (modeCount.toDouble() / rrIntervals.size) * 100.0
-
-    val baevskySI = aMo / (2.0 * mo * mxDMn)
-
-    // Kubios Stress Index, take square root of Baevsky Stress Index
-    val kubiosSI = kotlin.math.sqrt(baevskySI)
-    
-    // Return 0 if the result is not a finite number
-    return if(kubiosSI.isFinite()) kubiosSI else 0.0
 }
