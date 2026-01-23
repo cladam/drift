@@ -25,6 +25,7 @@ import com.ilseon.drift.ui.theme.CustomTextSecondary
 import com.ilseon.drift.ui.theme.LightGrey
 import com.ilseon.drift.ui.theme.MutedGreen
 import com.ilseon.drift.ui.theme.MutedRed
+import com.ilseon.drift.ui.theme.MutedTeal
 import com.ilseon.drift.ui.theme.StatusHigh
 import kotlin.compareTo
 import kotlin.math.abs
@@ -86,7 +87,7 @@ private fun TrendSparkline(
     modifier: Modifier = Modifier,
     data: List<Double>,
 ) {
-    val color = StatusHigh
+    val color = MutedTeal//StatusHigh
     val maxVal = data.maxOrNull() ?: 0.0
     val minVal = data.minOrNull() ?: 0.0
 
@@ -142,7 +143,7 @@ private fun TrendSparkline(
             // Draw fill first (behind the line)
             drawPath(
                 path = fillPath,
-                color = color.copy(alpha = 0.3f)
+                color = color.copy(alpha = 0.8f)
             )
 
             // Draw line on top

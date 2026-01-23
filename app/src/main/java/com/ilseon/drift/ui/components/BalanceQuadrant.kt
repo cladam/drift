@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
@@ -26,6 +27,8 @@ import com.ilseon.drift.data.DriftLog
 import com.ilseon.drift.ui.theme.CustomTextSecondary
 import com.ilseon.drift.ui.theme.LightGrey
 import com.ilseon.drift.ui.theme.StatusHigh
+import com.ilseon.drift.ui.theme.StatusMedium
+import com.ilseon.drift.ui.theme.StatusUrgent
 
 @Composable
 fun BalanceQuadrantCard(
@@ -76,11 +79,9 @@ private fun BalanceQuadrant(
     allLogs: List<DriftLog>,
     modifier: Modifier = Modifier,
 ) {
-    // Dynamic axis calculation
-    val hrvAxisMax = (allLogs.mapNotNull { it.hrvValue }.maxOrNull() ?: hrv)
-        .let { (it * 1.2).coerceAtLeast(100.0) }
-    val siAxisMax = (allLogs.mapNotNull { it.stressIndex }.maxOrNull() ?: stressIndex)
-        .let { (it * 1.2).coerceAtLeast(30.0) }
+    // Dynamic axis calculation based on historical data to keep the quadrant stable
+    val hrvAxisMax = (allLogs.mapNotNull { it.hrvValue }.maxOrNull() ?: hrv).let { (it * 1.2).coerceAtLeast(100.0) }
+    val siAxisMax = (allLogs.mapNotNull { it.stressIndex }.maxOrNull() ?: stressIndex).let { (it * 1.2).coerceAtLeast(30.0) }
 
     val density = LocalDensity.current
     val textPaint = android.graphics.Paint().apply {
@@ -92,20 +93,20 @@ private fun BalanceQuadrant(
     Canvas(modifier = modifier
         .fillMaxWidth()
         .height(200.dp)
-    ) {
+    ) { 
         val midX = size.width / 2
         val midY = size.height / 2
 
         // Draw quadrant lines (dashed)
         val pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
         drawLine(
-            color = CustomTextSecondary.copy(alpha = 0.4f),
+            color = CustomTextSecondary.copy(alpha = 0.6f),
             start = Offset(midX, 0f),
             end = Offset(midX, size.height),
             pathEffect = pathEffect
         )
         drawLine(
-            color = CustomTextSecondary.copy(alpha = 0.4f),
+            color = CustomTextSecondary.copy(alpha = 0.6f),
             start = Offset(0f, midY),
             end = Offset(size.width, midY),
             pathEffect = pathEffect
@@ -124,6 +125,13 @@ private fun BalanceQuadrant(
         val currentX = (stressIndex / siAxisMax * size.width).toFloat().coerceIn(0f, size.width)
         val currentY = (size.height - (hrv / hrvAxisMax * size.height)).toFloat().coerceIn(0f, size.height)
 
+        // Determine color based on quadrant
+        val dotColor = when {
+            currentX > midX && currentY > midY -> StatusUrgent // High Stress, Low Resilience
+            currentX < midX && currentY < midY -> StatusHigh   // Low Stress, High Resilience
+            else -> StatusMedium // Mixed quadrants
+        }
+
         // Draw trace line and previous dot if data is available
         if (previousHrv != null && previousStressIndex != null) {
             val prevX = (previousStressIndex / siAxisMax * size.width).toFloat().coerceIn(0f, size.width)
@@ -131,7 +139,7 @@ private fun BalanceQuadrant(
 
             // Draw trace line
             drawLine(
-                color = StatusHigh.copy(alpha = 0.5f),
+                color = dotColor.copy(alpha = 0.6f),
                 start = Offset(prevX, prevY),
                 end = Offset(currentX, currentY),
                 strokeWidth = 4f,
@@ -142,7 +150,7 @@ private fun BalanceQuadrant(
             drawPoints(
                 points = listOf(Offset(prevX, prevY)),
                 pointMode = PointMode.Points,
-                color = StatusHigh.copy(alpha = 0.5f),
+                color = dotColor.copy(alpha = 0.6f),
                 strokeWidth = 16f,
                 cap = StrokeCap.Round
             )
@@ -152,7 +160,7 @@ private fun BalanceQuadrant(
         drawPoints(
             points = listOf(Offset(currentX, currentY)),
             pointMode = PointMode.Points,
-            color = StatusHigh,
+            color = dotColor,
             strokeWidth = 24f,
             cap = StrokeCap.Round
         )

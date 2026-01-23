@@ -266,7 +266,8 @@ fun MainScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
                 AnalyticsCard(
-                    title = "Analytics",
+                    title = "Vibe Strip",
+                    subtitle = "7-day mood trend",
                     icon = Icons.AutoMirrored.Filled.ShowChart,
                     modifier = Modifier.fillMaxWidth(),
                     logs = weeklyTrend,

@@ -1,10 +1,5 @@
 package com.ilseon.drift.ui.components
 
-import androidx.compose.animation.animateColor
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,9 +16,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,6 +40,7 @@ import java.util.Locale
 @Composable
 fun AnalyticsCard(
     title: String,
+    subtitle: String? = null,
     icon: ImageVector? = null,
     modifier: Modifier = Modifier,
     logs: List<DriftLog>,
@@ -67,8 +63,15 @@ fun AnalyticsCard(
                 )
                 Spacer(modifier = Modifier.size(16.dp))
             }
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(text = title, color = CustomTextSecondary)
+                if (subtitle != null) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = CustomTextSecondary.copy(alpha = 0.7f)
+                    )
+                }
             }
         }
         WeekStrip(
@@ -79,7 +82,7 @@ fun AnalyticsCard(
         )
         Text(
             text = "Tap for more insights →",
-            style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelSmall,
             color = MutedTeal,
             modifier = Modifier
                 .padding(start = 16.dp, bottom = 12.dp)
