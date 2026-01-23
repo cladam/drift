@@ -17,6 +17,7 @@ class PulseAnalyzer(
     private val maxPeakInterval = 1200L // ~50 BPM min
     private var frameCount = 0
     private var baselineEstablished = false
+    private var startTime = 0L
 
     private val waveletKernel: DoubleArray
 
@@ -56,6 +57,9 @@ class PulseAnalyzer(
 
     @androidx.annotation.OptIn(androidx.camera.core.ExperimentalGetImage::class)
     override fun analyze(image: ImageProxy) {
+        if (startTime == 0L) {
+            startTime = System.currentTimeMillis()
+        }
         if (image.format != android.graphics.ImageFormat.YUV_420_888) {
             image.close()
             return
@@ -138,7 +142,8 @@ class PulseAnalyzer(
             val isConsistent = if (recentIntervals.size >= 3 && lastPeakTime != 0L) {
                 val avgInterval = recentIntervals.average()
                 val deviation = kotlin.math.abs(timeSinceLastPeak - avgInterval) / avgInterval
-                deviation < 0.30 // Only accept beats within 30% of the recent average interval
+                val maxDeviation = if (System.currentTimeMillis() - startTime < 10000) 0.50 else 0.35
+                deviation < maxDeviation // Only accept beats within 35% of the recent average interval (50% for the first 10s)
             } else {
                 true // Not enough history to check consistency, so accept it.
             }

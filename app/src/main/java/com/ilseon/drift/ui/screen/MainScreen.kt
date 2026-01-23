@@ -139,7 +139,8 @@ fun MainScreen(
 
                 if (validIntervals.size >= 10) {
                     newHrvValue = calculateRmssdFromIntervals(validIntervals)
-                    bpmValue = calculateBpmFromIntervals(validIntervals)
+                    // The final BPM is still calculated from all valid intervals
+                    bpmValue = calculateBpmFromIntervals(validIntervals) 
                     stressIndex = calculateStressIndex(validIntervals)
                     showCheckInModal = true
 
@@ -164,6 +165,7 @@ fun MainScreen(
             firstPulseTime = null
             newHrvValue = null
             stressIndex = null
+            bpmValue = null // Also clear BPM on new measurement
         }
     }
 
@@ -171,10 +173,16 @@ fun MainScreen(
         CheckInModal(
             onDismissRequest = { 
                 showCheckInModal = false
+                newHrvValue = null
+                bpmValue = null
+                stressIndex = null
             },
             onLog = { sliderValue, energyLvl, hrv, bpm, stress ->
                 checkInViewModel.insert(sliderValue, energyLvl, hrv, bpm, stress)
                 showCheckInModal = false
+                newHrvValue = null
+                bpmValue = null
+                stressIndex = null
             },
             latestCheckIn = latestCheckIn,
             hrv = newHrvValue,
@@ -256,6 +264,11 @@ fun MainScreen(
                             pulseTimestamps.add(timestamp)
                             if (firstPulseTime == null) {
                                 firstPulseTime = timestamp
+                            }
+                            // --- Rolling BPM Update ---
+                            if (pulseTimestamps.size > 5) {
+                                val recentIntervals = pulseTimestamps.takeLast(6).zipWithNext { a, b -> b - a }
+                                bpmValue = calculateBpmFromIntervals(recentIntervals)
                             }
                         }
                     )

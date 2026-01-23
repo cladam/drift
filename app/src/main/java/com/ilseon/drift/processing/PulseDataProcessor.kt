@@ -24,8 +24,8 @@ private fun correctArtifacts(intervals: List<Long>): List<Long> {
 
         val currentInterval = intervals[i]
 
-        // Keep interval if it's within 20% of the rolling average
-        if (abs(currentInterval - recentAverage) / recentAverage <= 0.20) {
+        // Keep interval if it's within 25% of the rolling average
+        if (abs(currentInterval - recentAverage) / recentAverage <= 0.25) {
             cleaned.add(currentInterval)
         }
     }

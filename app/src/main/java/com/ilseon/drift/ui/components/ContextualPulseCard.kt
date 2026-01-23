@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -27,13 +28,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import com.ilseon.drift.ui.theme.CustomTextPrimary
@@ -45,6 +50,8 @@ import com.ilseon.drift.ui.theme.StatusLow
 import com.ilseon.drift.ui.theme.StatusMedium
 import com.ilseon.drift.ui.theme.StatusUrgent
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlin.dec
 
 @Composable
 fun ContextualPulseCard(
@@ -57,6 +64,27 @@ fun ContextualPulseCard(
     onPulse: (Long) -> Unit = {}
 ) {
     var countdown by remember { mutableIntStateOf(40) }
+    val haptic = LocalHapticFeedback.current
+
+    // Track previous state separately
+    var previouslyMeasuring by remember { mutableStateOf(false) }
+
+// Haptic on start
+    LaunchedEffect(isMeasuring) {
+        if (isMeasuring && !previouslyMeasuring) {
+            delay(3000) // Wait for camera warmup
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
+        previouslyMeasuring = isMeasuring
+    }
+
+// Haptic on successful completion
+    LaunchedEffect(countdown, isMeasuring) {
+        if (countdown == 0 && isMeasuring) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
+    }
+
 
     LaunchedEffect(isMeasuring) {
         if (isMeasuring) {
@@ -96,11 +124,33 @@ fun ContextualPulseCard(
                     }
                 }
                 Spacer(Modifier.height(8.dp))
-                CameraPreview(
-                    modifier = Modifier.height(200.dp),
-                    onPulseDetected = { onPulse(it) },
-                    onCameraReady = { }
-                )
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.height(200.dp) // Match CameraPreview height
+                ) {
+                    CameraPreview(
+                        modifier = Modifier.fillMaxSize(), // Fill the box
+                        onPulseDetected = { onPulse(it) },
+                        onCameraReady = { }
+                    )
+                    // Show BPM value on top
+                    if (bpmValue != null && bpmValue > 0) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.Favorite,
+                                contentDescription = null,
+                                tint = Color.White.copy(alpha = 0.5f),
+                                modifier = Modifier.size(32.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "$bpmValue",
+                                style = MaterialTheme.typography.headlineLarge,
+                                color = Color.White.copy(alpha = 0.5f)
+                            )
+                        }
+                    }
+                }
             }
         } else {
             Row(

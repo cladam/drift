@@ -115,6 +115,7 @@ dependencies {
     implementation("com.google.android.material:material:1.13.0")
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.foundation.layout)
     androidTestImplementation(libs.androidx.rules)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.androidx.core.ktx)
