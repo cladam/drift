@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -29,6 +30,7 @@ import com.ilseon.drift.ui.theme.MutedTeal
 import com.ilseon.drift.ui.theme.StatusHigh
 import kotlin.compareTo
 import kotlin.math.abs
+import kotlin.math.sqrt
 import kotlin.times
 
 @Composable
@@ -43,6 +45,12 @@ fun TrendSparklineCard(
     if (data.size < 2) return
 
     val average = data.average()
+    val stdDev = if (data.size > 1) {
+        val variance = data.map { (it - average) * (it - average) }.average()
+        sqrt(variance)
+    } else {
+        0.0
+    }
     val currentValue = data.last()
     val deviation = currentValue - average
     val deviationString = if (deviation >= 0) "+${formatValue(deviation)}" else "-${formatValue(abs(deviation))}"
@@ -77,7 +85,7 @@ fun TrendSparklineCard(
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            TrendSparkline(data = data)
+            TrendSparkline(data = data, average = average, stdDev = stdDev)
         }
     }
 }
@@ -86,6 +94,8 @@ fun TrendSparklineCard(
 private fun TrendSparkline(
     modifier: Modifier = Modifier,
     data: List<Double>,
+    average: Double,
+    stdDev: Double,
 ) {
     val color = MutedTeal//StatusHigh
     val maxVal = data.maxOrNull() ?: 0.0
@@ -145,6 +155,27 @@ private fun TrendSparkline(
                 path = fillPath,
                 color = color.copy(alpha = 0.8f)
             )
+
+            // Normal range
+            val normalRangeTop = (average + stdDev)
+            val normalRangeBottom = (average - stdDev)
+
+            val topY = size.height * (1 - ((normalRangeTop - paddedMin) / displayRange).toFloat()).coerceIn(0f, 1f)
+            val bottomY = size.height * (1 - ((normalRangeBottom - paddedMin) / displayRange).toFloat()).coerceIn(0f, 1f)
+
+            if (topY < bottomY) {
+                val normalRangePath = Path().apply {
+                    moveTo(0f, topY)
+                    lineTo(size.width, topY)
+                    lineTo(size.width, bottomY)
+                    lineTo(0f, bottomY)
+                    close()
+                }
+                drawPath(
+                    path = normalRangePath,
+                    color = Color.White.copy(alpha = 0.1f)
+                )
+            }
 
             // Draw line on top
             drawPath(

@@ -29,7 +29,8 @@ import java.util.concurrent.Executors
 fun CameraPreview(
     modifier: Modifier = Modifier,
     onPulseDetected: (Long) -> Unit,
-    onCameraReady: () -> Unit = {}
+    onCameraReady: () -> Unit = {},
+    onMeasurementFailed: () -> Unit
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
@@ -37,6 +38,7 @@ fun CameraPreview(
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
     val currentOnPulseDetected = rememberUpdatedState(onPulseDetected)
     val currentOnCameraReady = rememberUpdatedState(onCameraReady)
+    val currentOnMeasurementFailed = rememberUpdatedState(onMeasurementFailed)
 
     LaunchedEffect(Unit) {
         android.util.Log.d("CameraPreview", "Starting camera setup")
@@ -49,7 +51,6 @@ fun CameraPreview(
                 it.surfaceProvider = previewView.surfaceProvider
             }
 
-            // Select the main back camera to avoid lens switching on multi-camera devices.
             val cameraSelector = CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .addCameraFilter { cameraInfos ->
@@ -66,10 +67,19 @@ fun CameraPreview(
                 .build()
                 .also {
                     android.util.Log.d("CameraPreview", "Setting up analyzer")
-                    it.setAnalyzer(cameraExecutor, PulseAnalyzer { timestamp ->
-                        android.util.Log.d("CameraPreview", "Pulse callback: $timestamp")
-                        currentOnPulseDetected.value(timestamp)
-                    })
+                    it.setAnalyzer(
+                        cameraExecutor,
+                        PulseAnalyzer(
+                            onPulseDetected = { timestamp ->
+                                android.util.Log.d("CameraPreview", "Pulse callback: $timestamp")
+                                currentOnPulseDetected.value(timestamp)
+                            },
+                            onMeasurementFailed = {
+                                android.util.Log.d("CameraPreview", "Measurement failed")
+                                currentOnMeasurementFailed.value()
+                            }
+                        )
+                    )
                 }
 
             cameraProvider.unbindAll()
@@ -80,7 +90,6 @@ fun CameraPreview(
                 imageAnalysis
             )
             camera.cameraControl.enableTorch(true)
-            // Prevent zooming to ensure we're using the main lens.
             camera.cameraControl.setLinearZoom(0f)
             android.util.Log.d("CameraPreview", "Camera bound successfully")
             currentOnCameraReady.value()

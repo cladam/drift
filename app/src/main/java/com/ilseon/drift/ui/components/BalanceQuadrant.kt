@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ilseon.drift.data.DriftLog
+import com.ilseon.drift.ui.theme.CustomTextPrimary
 import com.ilseon.drift.ui.theme.CustomTextSecondary
 import com.ilseon.drift.ui.theme.LightGrey
 import com.ilseon.drift.ui.theme.StatusHigh
@@ -47,7 +48,7 @@ fun BalanceQuadrantCard(
             Text(
                 "Balance Quadrant",
                 style = MaterialTheme.typography.titleMedium,
-                color = CustomTextSecondary
+                color = CustomTextPrimary
             )
             Spacer(Modifier.height(8.dp))
             if (hrv != null && stressIndex != null) {
@@ -62,7 +63,7 @@ fun BalanceQuadrantCard(
                 Text(
                     "Measure your pulse to see your position.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = CustomTextSecondary,
+                    color = CustomTextPrimary,
                     modifier = Modifier.padding(8.dp).fillMaxWidth()
                 )
             }
@@ -87,7 +88,7 @@ private fun BalanceQuadrant(
     val textPaint = android.graphics.Paint().apply {
         isAntiAlias = true
         textSize = with(density) { 10.sp.toPx() }
-        color = CustomTextSecondary.copy(alpha = 0.6f).toArgb()
+        color = CustomTextPrimary.copy(alpha = 0.6f).toArgb()
     }
 
     Canvas(modifier = modifier
@@ -100,13 +101,13 @@ private fun BalanceQuadrant(
         // Draw quadrant lines (dashed)
         val pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
         drawLine(
-            color = CustomTextSecondary.copy(alpha = 0.6f),
+            color = CustomTextPrimary.copy(alpha = 0.6f),
             start = Offset(midX, 0f),
             end = Offset(midX, size.height),
             pathEffect = pathEffect
         )
         drawLine(
-            color = CustomTextSecondary.copy(alpha = 0.6f),
+            color = CustomTextPrimary.copy(alpha = 0.6f),
             start = Offset(0f, midY),
             end = Offset(size.width, midY),
             pathEffect = pathEffect

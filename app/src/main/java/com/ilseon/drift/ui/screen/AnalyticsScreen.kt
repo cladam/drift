@@ -36,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -51,11 +50,14 @@ import com.ilseon.drift.ui.theme.CustomTextSecondary
 import com.ilseon.drift.ui.theme.DarkGrey
 import com.ilseon.drift.ui.theme.LightGrey
 import com.ilseon.drift.ui.theme.MutedTeal
+import com.ilseon.drift.ui.theme.StatusHigh
+import com.ilseon.drift.ui.theme.StatusLow
+import com.ilseon.drift.ui.theme.StatusMedium
 import com.ilseon.drift.ui.viewmodels.CheckInViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import kotlin.text.toDouble
+import kotlin.math.sqrt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -160,6 +162,10 @@ private fun TrendsContent(checkInViewModel: CheckInViewModel) {
                 data = weeklyTrend.mapNotNull { it.hrvValue },
                 higherIsBetter = true
             )
+        }
+
+        item {
+            StabilityCard(weeklyTrend = weeklyTrend)
         }
 
         item {
@@ -292,7 +298,6 @@ private fun AnalyticsContent(checkInViewModel: CheckInViewModel) {
             }
         }
 
-
         item {
             HrvByEnergyCard(hrvByEnergy = hrvByEnergy)
         }
@@ -363,6 +368,53 @@ private fun HrvByEnergyCard(hrvByEnergy: Map<String, Double?>) {
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun StabilityCard(weeklyTrend: List<DriftLog>) {
+    val hrvValues = weeklyTrend.mapNotNull { it.hrvValue }
+
+    val cv: Double? = if (hrvValues.size > 1) {
+        val mean = hrvValues.average()
+        val stdDev = sqrt(hrvValues.map { (it - mean) * (it - mean) }.average())
+        if (mean > 0) (stdDev / mean) * 100 else 0.0
+    } else {
+        null
+    }
+
+    val (stabilityInfo, statusColor) = when {
+        cv == null -> Triple("N/A", "Not Enough Data", "Need at least two measurements this week to calculate stability.") to CustomTextSecondary
+        cv < 10 -> Triple("%.1f%%".format(cv), "Very Stable", "Your nervous system is showing strong resilience and stability.") to StatusLow
+        cv < 15 -> Triple("%.1f%%".format(cv), "Stable", "Your system is maintaining good balance day-to-day.") to StatusMedium
+        else -> Triple("%.1f%%".format(cv), "Variable", "Your system is working hard to adapt. Consider focusing on consistent routines.\nA variable system often needs lower sensory input. Consider a 'low-friction' day.") to StatusHigh
+    }
+    val (stabilityValue, stabilityStatus, stabilityDescription) = stabilityInfo
+
+    Card(colors = CardDefaults.cardColors(containerColor = LightGrey)) {
+        Column(Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Text("System Stability", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                Text(
+                    text = stabilityValue,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = statusColor
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(stabilityStatus, color = statusColor, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = stabilityDescription,
+                style = MaterialTheme.typography.bodyMedium,
+                color = CustomTextSecondary
+            )
         }
     }
 }

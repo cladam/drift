@@ -1,6 +1,7 @@
 package com.ilseon.drift.ui.components
 
 import android.util.Log
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.ilseon.drift.ui.theme.CustomTextPrimary
 import com.ilseon.drift.ui.theme.CustomTextSecondary
 import com.ilseon.drift.ui.theme.LightGrey
+import com.ilseon.drift.ui.theme.MutedDetail
 import com.ilseon.drift.ui.theme.MutedTeal
 import com.ilseon.drift.ui.theme.StatusHigh
 import com.ilseon.drift.ui.theme.StatusLow
@@ -58,11 +61,17 @@ fun ContextualPulseCard(
     onCancel: () -> Unit = {},
     modifier: Modifier = Modifier,
     isMeasuring: Boolean = false,
-    onPulse: (Long) -> Unit = {}
+    onPulse: (Long) -> Unit = {},
+    onMeasurementFailed: () -> Unit
 ) {
     var countdown by remember { mutableIntStateOf(40) }
     val haptic = LocalHapticFeedback.current
     val wasMeasuring = remember { mutableStateOf(isMeasuring) }
+
+    val progress by animateFloatAsState(
+        targetValue = if (isMeasuring) 1f - (countdown.coerceAtMost(40) / 40f) else 0f,
+        label = "Measurement Progress"
+    )
 
     LaunchedEffect(isMeasuring) {
         if (isMeasuring && !wasMeasuring.value) {
@@ -101,8 +110,6 @@ fun ContextualPulseCard(
                 ) {
                     Text("Pulse & HRV", color = CustomTextSecondary)
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("$countdown s", color = CustomTextSecondary)
-                        Spacer(Modifier.width(8.dp))
                         Icon(
                             Icons.Default.Close,
                             contentDescription = "Cancel",
@@ -121,7 +128,8 @@ fun ContextualPulseCard(
                     CameraPreview(
                         modifier = Modifier.fillMaxSize(), // Fill the box
                         onPulseDetected = { onPulse(it) },
-                        onCameraReady = { }
+                        onCameraReady = { },
+                        onMeasurementFailed = onMeasurementFailed
                     )
                     // Show BPM value on top
                     if (bpmValue != null && bpmValue > 0) {
@@ -141,6 +149,13 @@ fun ContextualPulseCard(
                         }
                     }
                 }
+                Spacer(Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MutedDetail,
+                    trackColor = Color.Black.copy(alpha = 0.3f),
+                )
             }
         } else {
             Row(
