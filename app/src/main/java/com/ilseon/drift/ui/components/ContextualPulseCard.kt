@@ -31,7 +31,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,8 +49,6 @@ import com.ilseon.drift.ui.theme.StatusLow
 import com.ilseon.drift.ui.theme.StatusMedium
 import com.ilseon.drift.ui.theme.StatusUrgent
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlin.dec
 
 @Composable
 fun ContextualPulseCard(
@@ -65,26 +62,19 @@ fun ContextualPulseCard(
 ) {
     var countdown by remember { mutableIntStateOf(40) }
     val haptic = LocalHapticFeedback.current
+    val wasMeasuring = remember { mutableStateOf(isMeasuring) }
 
-    // Track previous state separately
-    var previouslyMeasuring by remember { mutableStateOf(false) }
-
-// Haptic on start
     LaunchedEffect(isMeasuring) {
-        if (isMeasuring && !previouslyMeasuring) {
+        if (isMeasuring && !wasMeasuring.value) {
+            // Measurement started
             delay(3000) // Wait for camera warmup
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-        }
-        previouslyMeasuring = isMeasuring
-    }
-
-// Haptic on successful completion
-    LaunchedEffect(countdown, isMeasuring) {
-        if (countdown == 0 && isMeasuring) {
+        } else if (!isMeasuring && wasMeasuring.value) {
+            // Measurement stopped (either completed or cancelled)
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         }
+        wasMeasuring.value = isMeasuring
     }
-
 
     LaunchedEffect(isMeasuring) {
         if (isMeasuring) {
