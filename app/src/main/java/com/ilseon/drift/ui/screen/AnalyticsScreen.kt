@@ -9,10 +9,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +31,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -36,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -57,6 +65,7 @@ import com.ilseon.drift.ui.viewmodels.CheckInViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import kotlin.math.pow
 import kotlin.math.sqrt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -121,6 +130,9 @@ private fun TrendsContent(checkInViewModel: CheckInViewModel) {
     val previousLog by checkInViewModel.previousLog.collectAsState()
     val latestSleepRecord by checkInViewModel.latestSleepRecord.collectAsState()
     val sevenDayHrvAverage by checkInViewModel.sevenDayHrvAverage.collectAsState()
+    val sixtyDayHrvAverage by checkInViewModel.sixtyDayHrvAverage.collectAsState()
+    val fourteenDaySleepAverage by checkInViewModel.fourteenDaySleepAverage.collectAsState()
+    val hrvCv by checkInViewModel.hrvCv.collectAsState()
     val yesterdayStressIndex by checkInViewModel.yesterdayEveningStressIndex.collectAsState()
     val weeklyTrend by checkInViewModel.weeklyTrend.collectAsState()
 
@@ -131,10 +143,13 @@ private fun TrendsContent(checkInViewModel: CheckInViewModel) {
         item {
             ReadinessCard(
                 currentHrv = latestCheckIn?.hrvValue,
-                avgHrv = sevenDayHrvAverage,
+                sevenDayHrvAverage = sevenDayHrvAverage,
+                sixtyDayHrvAverage = sixtyDayHrvAverage,
+                hrvCv = hrvCv,
                 currentSi = latestCheckIn?.stressIndex,
                 yesterdaySi = yesterdayStressIndex,
-                sleepMinutes = latestSleepRecord?.sleepDurationMinutes
+                sleepMinutes = latestSleepRecord?.sleepDurationMinutes,
+                fourteenDaySleepAverage = fourteenDaySleepAverage
             )
         }
 
@@ -218,7 +233,7 @@ private fun TrendsContent(checkInViewModel: CheckInViewModel) {
 
         item {
             TrendSparklineCard(
-                title = "Mood Score (7-day)",
+                title = "Mood Balance (7-day)",
                 data = weeklyTrend.map { (it.moodScore?.times(100))?.toDouble() ?: 0.0 },
                 higherIsBetter = true,
                 unit = "%"
@@ -239,13 +254,6 @@ private fun AnalyticsContent(checkInViewModel: CheckInViewModel) {
     val hourlyCounts = allLogs
         .groupBy { Calendar.getInstance().apply { timeInMillis = it.timestamp }.get(Calendar.HOUR_OF_DAY) }
         .mapValues { it.value.size }
-
-    val hrvByEnergy = allLogs
-        .filter { it.energyLevel != null }
-        .groupBy { it.energyLevel!! }
-        .mapValues { (_, logs) ->
-            logs.mapNotNull { it.hrvValue }.average().takeIf { !it.isNaN() }
-        }
 
     LazyColumn(
         modifier = Modifier.padding(16.dp),
@@ -299,7 +307,7 @@ private fun AnalyticsContent(checkInViewModel: CheckInViewModel) {
         }
 
         item {
-            HrvByEnergyCard(hrvByEnergy = hrvByEnergy)
+            HrvByEnergyCard(allLogs = allLogs)
         }
 
         item {
@@ -346,14 +354,92 @@ private fun HourlyActivityChart(hourlyCounts: Map<Int, Int>) {
 }
 
 @Composable
-private fun HrvByEnergyCard(hrvByEnergy: Map<String, Double?>) {
+private fun HelpIconWithModal(
+    title: String,
+    content: @Composable () -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    IconButton(onClick = { showDialog = true }, modifier = Modifier.size(24.dp)) {
+        Icon(
+            imageVector = Icons.Outlined.HelpOutline,
+            contentDescription = "Learn more",
+            tint = CustomTextSecondary
+        )
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(text = title) },
+            text = content,
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("GOT IT")
+                }
+            },
+            containerColor = LightGrey, // Match card color
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            textContentColor = CustomTextSecondary
+        )
+    }
+}
+
+@Composable
+private fun HrvByEnergyCard(allLogs: List<DriftLog>) {
+    // 1. Filter and Group
+    val energyGroups = allLogs.filter { it.energyLevel != null }
+        .groupBy { it.energyLevel!! }
+
+    // 2. Map to Averages and Stability
+    val statsByEnergy = energyGroups.mapValues { (_, logs) ->
+        val hrvValues = logs.mapNotNull { it.hrvValue }
+        if (hrvValues.isEmpty()) return@mapValues null
+
+        val avg = hrvValues.average()
+        val stdDev = sqrt(hrvValues.map { (it - avg).pow(2.0) }.average())
+        val cv = if (avg > 0) (stdDev / avg) * 100 else 0.0
+
+        avg to cv // Return a pair of (Average, CV)
+    }
+
     Card(colors = CardDefaults.cardColors(containerColor = LightGrey)) {
         Column(Modifier.padding(16.dp)) {
-            Text("HRV by Energy Level", style = MaterialTheme.typography.titleMedium)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Energy vs. Physiology", style = MaterialTheme.typography.titleMedium)
+                HelpIconWithModal(
+                    title = "About Energy vs. Physiology",
+                    content = {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                "This card shows the connection between how you feel (your energy level) and what your body is doing (your HRV).",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                "What to look for:",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                "• Average HRV: Ideally, you want to see your highest HRV on 'High' energy days.",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                "• Stability Icon (✅ or ⚠️): This shows how consistent your HRV is for each energy state. A 'Variable' (⚠️) state on a 'High' energy day might indicate stress.",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                )
+            }
             Spacer(Modifier.height(12.dp))
-            val energyLevels = listOf("HIGH", "MEDIUM", "LOW")
-            energyLevels.forEach { level ->
-                val avgHrv = hrvByEnergy[level]
+
+            listOf("HIGH", "MEDIUM", "LOW").forEach { level ->
+                val stats = statsByEnergy[level]
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(vertical = 4.dp)
@@ -362,10 +448,29 @@ private fun HrvByEnergyCard(hrvByEnergy: Map<String, Double?>) {
                         level.lowercase().replaceFirstChar { it.uppercase() },
                         Modifier.weight(1f)
                     )
-                    Text(
-                        text = avgHrv?.let { "%.1f".format(it) } ?: "N/A",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+
+                    if (stats != null) {
+                        val (avg, cv) = stats
+                        // Stability Indicator Icon
+                        val iconData: Pair<ImageVector, androidx.compose.ui.graphics.Color>? = when {
+                            cv < 7.0 -> Icons.Default.CheckCircle to MutedTeal
+                            cv > 13.0 -> Icons.Default.Warning to StatusHigh
+                            else -> null
+                        }
+
+                        Text("%.1f ms".format(avg), style = MaterialTheme.typography.bodyMedium)
+                        if (iconData != null) {
+                            Spacer(Modifier.width(8.dp))
+                            Icon(
+                                iconData.first,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = iconData.second
+                            )
+                        }
+                    } else {
+                        Text("N/A", color = CustomTextSecondary)
+                    }
                 }
             }
         }
@@ -385,10 +490,29 @@ private fun StabilityCard(weeklyTrend: List<DriftLog>) {
     }
 
     val (stabilityInfo, statusColor) = when {
-        cv == null -> Triple("N/A", "Not Enough Data", "Need at least two measurements this week to calculate stability.") to CustomTextSecondary
-        cv < 10 -> Triple("%.1f%%".format(cv), "Very Stable", "Your nervous system is showing strong resilience and stability.") to StatusLow
-        cv < 15 -> Triple("%.1f%%".format(cv), "Stable", "Your system is maintaining good balance day-to-day.") to StatusMedium
-        else -> Triple("%.1f%%".format(cv), "Variable", "Your system is working hard to adapt. Consider focusing on consistent routines.\nA variable system often needs lower sensory input. Consider a 'low-friction' day.") to StatusHigh
+        cv == null -> Triple(
+            "N/A",
+            "Not Enough Data",
+            "Need at least two measurements this week to calculate stability."
+        ) to CustomTextSecondary
+
+        cv < 10 -> Triple(
+            "%.1f%%",
+            "Very Stable",
+            "Your nervous system is showing strong resilience and stability."
+        ) to StatusLow
+
+        cv < 15 -> Triple(
+            "%.1f%%",
+            "Stable",
+            "Your system is maintaining good balance day-to-day."
+        ) to StatusMedium
+
+        else -> Triple(
+            "%.1f%%",
+            "Variable",
+            "Your system is working hard to adapt. Consider focusing on consistent routines.\nA variable system often needs lower sensory input. Consider a 'low-friction' day."
+        ) to StatusHigh
     }
     val (stabilityValue, stabilityStatus, stabilityDescription) = stabilityInfo
 
@@ -401,7 +525,7 @@ private fun StabilityCard(weeklyTrend: List<DriftLog>) {
             ) {
                 Text("System Stability", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 Text(
-                    text = stabilityValue,
+                    text = stabilityValue.format(cv),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = statusColor

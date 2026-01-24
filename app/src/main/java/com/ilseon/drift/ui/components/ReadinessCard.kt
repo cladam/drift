@@ -20,19 +20,25 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.ilseon.drift.ui.theme.CustomTextSecondary
 import com.ilseon.drift.ui.theme.LightGrey
+import com.ilseon.drift.ui.theme.MutedTeal
+import com.ilseon.drift.ui.theme.StatusHigh
+import kotlin.math.ln
 
 @Composable
 fun ReadinessCard(
     currentHrv: Double?,
-    avgHrv: Double,
+    sevenDayHrvAverage: Double,
+    sixtyDayHrvAverage: Double,
+    hrvCv: Double?,
     currentSi: Double?,
     yesterdaySi: Double?,
-    sleepMinutes: Int?
+    sleepMinutes: Int?,
+    fourteenDaySleepAverage: Double?
 ) {
-    // Handle case where we don't have today's morning measurement yet.
     if (currentHrv == null || currentSi == null) {
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -47,35 +53,68 @@ fun ReadinessCard(
         return
     }
 
-    val readinessScore = calculateReadinessScore(currentHrv, avgHrv, currentSi)
+    val readinessScore = calculateReadinessScore(
+        currentHrv = currentHrv,
+        sevenDayHrvAverage = sevenDayHrvAverage,
+        hrvCv = hrvCv,
+        sleepMinutes = sleepMinutes,
+        fourteenDaySleepAverage = fourteenDaySleepAverage
+    )
+
+    val readinessColor = when {
+        readinessScore > 85 -> MutedTeal
+        readinessScore in 70..84 -> CustomTextSecondary
+        else -> StatusHigh
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = LightGrey)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            ReadinessScore(readinessScore)
-
+            ReadinessScore(readinessScore, readinessColor)
             Spacer(modifier = Modifier.height(16.dp))
-
-            ContextualInsight(readinessScore, currentHrv, avgHrv, currentSi, yesterdaySi, sleepMinutes)
+            ContextualInsight(readinessScore, currentHrv, sevenDayHrvAverage, currentSi, yesterdaySi, sleepMinutes)
         }
     }
 }
 
-private fun calculateReadinessScore(currentHrv: Double, avgHrv: Double, currentSi: Double): Int {
-    val hrvRatio = (currentHrv / avgHrv).coerceIn(0.5, 1.5) // Clamped to avoid extreme values
-    val siFactor = 1 - (currentSi / 100).coerceIn(0.0, 1.0) // Inverted: higher SI is worse
+private fun calculateReadinessScore(
+    currentHrv: Double,
+    sevenDayHrvAverage: Double,
+    hrvCv: Double?,
+    sleepMinutes: Int?,
+    fourteenDaySleepAverage: Double?
+): Int {
+    // 1. HRV Score (log-scaled)
+    val hrvRatio = (ln(currentHrv) / ln(sevenDayHrvAverage)).coerceIn(0.0, 1.2)
+    var hrvScore = hrvRatio * 100
 
-    // Weighted average: HRV is more significant
-    return ((hrvRatio * 0.7 + siFactor * 0.3) * 100).toInt()
+    // Apply Stability Adjustment if we have CV data
+    hrvCv?.let { cv ->
+        val stabilityMultiplier = when {
+            cv < 5.0 -> 1.05  // 5% bonus for high stability
+            cv > 12.0 -> 0.90 // 10% penalty for wild swings
+            else -> 1.0
+        }
+        hrvScore *= stabilityMultiplier
+    }
+
+    // 2. Sleep Score
+    val sleepTarget = fourteenDaySleepAverage ?: 480.0 // Default to 8 hours if no average
+    val sleepScore = ((sleepMinutes?.toDouble() ?: 0.0) / sleepTarget * 100).coerceIn(50.0, 110.0)
+
+    // 3. Combine scores
+    val combinedScore = (hrvScore * 0.6 + sleepScore * 0.4)
+
+    return combinedScore.toInt().coerceIn(0, 100)
 }
 
 @Composable
-private fun ReadinessScore(score: Int) {
+private fun ReadinessScore(score: Int, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         Text("Readiness Score", style = MaterialTheme.typography.labelMedium, color = CustomTextSecondary)
-        Text(score.toString(), style = MaterialTheme.typography.displayLarge)
+        Text(score.toString(), style = MaterialTheme.typography.displayLarge, color = color)
     }
 }
 
@@ -89,15 +128,14 @@ private fun ContextualInsight(
     sleepMinutes: Int?
 ) {
     val insight = when {
-        readinessScore > 85 -> "Your system is in peak condition."
-        readinessScore > 60 -> "Stable and balanced. Good conditions for focus."
-        else -> "Low energy – prioritise rest."
+        readinessScore > 85 -> "Optimal. You are ready for deep focus."
+        readinessScore in 70..84 -> "Good. Stable. Stick to your routines."
+        else -> "Pay Attention. System under strain. Consider a low-friction day."
     }
     Text(insight, style = MaterialTheme.typography.bodyLarge)
 
     Spacer(modifier = Modifier.height(16.dp))
 
-    // The "Why" - Passive Insights
     if (yesterdaySi != null && sleepMinutes != null) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             val recoveryIcon = if (currentSi < yesterdaySi) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward

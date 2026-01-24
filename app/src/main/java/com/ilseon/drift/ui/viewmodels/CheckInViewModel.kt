@@ -15,12 +15,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import kotlin.math.sqrt
 
 class CheckInViewModel(
     application: Application,
@@ -188,6 +188,28 @@ class CheckInViewModel(
         if (morningHrvs.isNotEmpty()) morningHrvs.average() else 60.0 // Default to a baseline
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 60.0)
 
+    val sixtyDayHrvAverage: StateFlow<Double> = repository.getTrend(sixtyDaysAgo()).map { logs ->
+        val morningHrvs = logs.filter { it.hrvValue != null && isMorning(it.timestamp) }.map { it.hrvValue!! }
+        if (morningHrvs.isNotEmpty()) morningHrvs.average() else 60.0 // Default to a baseline
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 60.0)
+
+    val fourteenDaySleepAverage: StateFlow<Double?> = repository.getTrend(fourteenDaysAgo()).map { logs ->
+        val sleepDurations = logs.mapNotNull { it.sleepDurationMinutes }
+        if (sleepDurations.isNotEmpty()) sleepDurations.average() else null
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val hrvCv: StateFlow<Double?> = weeklyTrend.map { weeklyTrend ->
+        val hrvValues = weeklyTrend.mapNotNull { it.hrvValue }
+        if (hrvValues.size > 1) {
+            val mean = hrvValues.average()
+            val stdDev = sqrt(hrvValues.map { (it - mean) * (it - mean) }.average())
+            if (mean > 0) (stdDev / mean) * 100 else 0.0
+        } else {
+            null
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+
     val yesterdayEveningStressIndex: StateFlow<Double?> = weeklyTrend.map { logs ->
         logs.lastOrNull { it.stressIndex != null && isYesterdayEvening(it.timestamp) }?.stressIndex
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
@@ -196,6 +218,18 @@ class CheckInViewModel(
     private fun sevenDaysAgo(): Long {
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, -7)
+        return calendar.timeInMillis
+    }
+
+    private fun fourteenDaysAgo(): Long {
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_YEAR, -14)
+        return calendar.timeInMillis
+    }
+
+    private fun sixtyDaysAgo(): Long {
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_YEAR, -60)
         return calendar.timeInMillis
     }
 
