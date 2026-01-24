@@ -12,7 +12,7 @@ plugins {
 
 android {
     namespace = "com.ilseon.drift"
-    compileSdk = 36 // Fix syntax - was using invalid block
+    compileSdk = 36
 
     sourceSets {
         getByName("androidTest") {
