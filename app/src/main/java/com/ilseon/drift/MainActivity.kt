@@ -28,13 +28,12 @@ import com.ilseon.drift.ui.screen.AnalyticsScreen
 import com.ilseon.drift.ui.screen.MainScreen
 import com.ilseon.drift.ui.theme.DriftTheme
 import com.ilseon.drift.ui.viewmodels.CheckInViewModel
-import com.ilseon.drift.ui.viewmodels.CheckInViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val checkInViewModel: CheckInViewModel by viewModels {
-        CheckInViewModelFactory(application, (application as DriftApplication).repository)
-    }
+    private val checkInViewModel: CheckInViewModel by viewModels()
 
     private var showNotificationRationaleDialog by mutableStateOf(false)
     private var showAlarmPermissionDialog by mutableStateOf(false)
@@ -46,11 +45,8 @@ class MainActivity : ComponentActivity() {
         if (isGranted) {
             scheduleNotifications()
         } else {
-            // Explain to the user that the feature is unavailable because the
-            // features requires a permission that the user has denied. At the
-            // same time, respect the user's decision. Don't link to system
-            // settings in an effort to convince the user to change their
-            // decision.
+            // I should explain to the user that the feature is unavailable because the
+            // features requires a permission that the user has denied.
         }
     }
 

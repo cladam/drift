@@ -6,7 +6,12 @@ import android.content.IntentFilter
 import android.os.IBinder
 import android.util.Log
 import androidx.core.content.ContextCompat
+import androidx.glance.appwidget.updateAll
 import com.ilseon.drift.notifications.DriftNotificationManager
+import com.ilseon.drift.widget.OrbWidget
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlin.compareTo
 
 class SleepTrackingService : Service() {
@@ -53,6 +58,7 @@ class SleepTrackingService : Service() {
             Log.d(TAG, "Unlock receiver registered")
 
             SleepTrackingState.isTracking.value = true
+            updateWidget()
             Log.d(TAG, "Sleep tracking started.")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start tracking: ${e.message}", e)
@@ -93,6 +99,7 @@ class SleepTrackingService : Service() {
         stopForeground(STOP_FOREGROUND_REMOVE)
         SleepTrackingState.isTracking.value = false
         stopSelf()
+        updateWidget()
         Log.d(TAG, "Service stopped. Duration: ${sleepDurationMs / 60000} minutes")
     }
 
@@ -118,5 +125,11 @@ class SleepTrackingService : Service() {
         }
 
         super.onDestroy()
+    }
+
+    private fun updateWidget() {
+        CoroutineScope(Dispatchers.IO).launch {
+            OrbWidget().updateAll(this@SleepTrackingService)
+        }
     }
 }

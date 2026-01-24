@@ -44,7 +44,11 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun DriftWidgetContent(latestCheckIn: DriftLog?, orbColor: Color) {
+fun DriftWidgetContent(
+    latestCheckIn: DriftLog?,
+    orbColor: Color,
+    isSleepTracking: Boolean
+) {
     val formattedTime = latestCheckIn?.timestamp?.let {
         val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
         sdf.format(Date(it))
@@ -74,33 +78,40 @@ fun DriftWidgetContent(latestCheckIn: DriftLog?, orbColor: Color) {
                 )
             }
             Spacer(GlanceModifier.width(16.dp))
-            Column(modifier = GlanceModifier.fillMaxWidth()) {
-                WidgetButton(
-                    text = "Goodnight",
-                    onClick = actionStartActivity(
-                        Intent(Intent.ACTION_VIEW).setClassName(
+            if (isSleepTracking) {
+                Column(modifier = GlanceModifier.fillMaxWidth()) {
+                    Text(
+                        "Tracking Sleep...",
+                        style = TextStyle(color = ColorProvider(day = CustomTextPrimary, night = CustomTextPrimary), fontSize = 14.sp)
+                    )
+                    Spacer(GlanceModifier.height(4.dp))
+                    WidgetButton(
+                        text = "Wake Up",
+                        onClick = actionRunCallback<EndSleepAction>()
+                    )
+                }
+            } else {
+                Column(modifier = GlanceModifier.fillMaxWidth()) {
+                    WidgetButton(
+                        text = "Goodnight",
+                        onClick = actionRunCallback<StartSleepAction>()
+                    )
+                    Spacer(GlanceModifier.height(4.dp))
+                    WidgetButton(
+                        text = "Check In",
+                        onClick = actionStartActivity(Intent(Intent.ACTION_VIEW).setClassName(
                             "com.ilseon.drift",
                             "com.ilseon.drift.MainActivity"
                         ).apply {
-                            putExtra("notification_action", "goodnight")
+                            putExtra("notification_action", "check_in")
                         })
-                )
-                Spacer(GlanceModifier.height(4.dp))
-                WidgetButton(
-                    text = "Check In",
-//                    onClick = actionStartActivity(Intent(Intent.ACTION_VIEW).setClassName(
-//                        "com.ilseon.drift",
-//                        "com.ilseon.drift.MainActivity"
-//                    ).apply {
-//                        putExtra("notification_action", "check_in")
-//                    })
-                    onClick = actionRunCallback<UpdateAction>()
-                )
-                Spacer(GlanceModifier.height(4.dp))
-                Text(
-                    "Last Log: $formattedTime",
-                    style = TextStyle(color = ColorProvider(day = CustomTextSecondary, night = CustomTextSecondary), fontSize = 12.sp)
-                )
+                    )
+                    Spacer(GlanceModifier.height(4.dp))
+                    Text(
+                        "Last Log: $formattedTime",
+                        style = TextStyle(color = ColorProvider(day = CustomTextSecondary, night = CustomTextSecondary), fontSize = 12.sp)
+                    )
+                }
             }
 
         }

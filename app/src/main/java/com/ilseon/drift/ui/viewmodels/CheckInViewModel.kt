@@ -2,15 +2,16 @@ package com.ilseon.drift.ui.viewmodels
 
 import android.app.Application
 import android.util.Log
+import androidx.glance.appwidget.updateAll
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ilseon.drift.data.DriftLog
 import com.ilseon.drift.data.DriftRepository
 import com.ilseon.drift.notifications.DriftNotificationManager
 import com.ilseon.drift.service.SleepTrackingManager
 import com.ilseon.drift.service.SleepTrackingState
+import com.ilseon.drift.widget.OrbWidget
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,9 +21,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import javax.inject.Inject
 import kotlin.math.sqrt
 
-class CheckInViewModel(
+@HiltViewModel
+class CheckInViewModel @Inject constructor(
     application: Application,
     private val repository: DriftRepository
 ) : AndroidViewModel(application) {
@@ -126,10 +129,12 @@ class CheckInViewModel(
             sleepEndTime = previousLog?.sleepEndTime
         )
         repository.insert(newLog)
+        OrbWidget().updateAll(getApplication())
     }
 
     private fun update(log: DriftLog) = viewModelScope.launch {
         repository.update(log)
+        OrbWidget().updateAll(getApplication())
     }
 
     fun startSleep() {
@@ -251,18 +256,5 @@ class CheckInViewModel(
         return yesterday.get(Calendar.YEAR) == logTime.get(Calendar.YEAR) &&
                 yesterday.get(Calendar.DAY_OF_YEAR) == logTime.get(Calendar.DAY_OF_YEAR) &&
                 hour in 18..23 // 6 PM to 11 PM
-    }
-}
-
-class CheckInViewModelFactory(
-    private val application: Application,
-    private val repository: DriftRepository
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(CheckInViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return CheckInViewModel(application, repository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
