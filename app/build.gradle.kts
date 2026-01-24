@@ -103,16 +103,16 @@ tasks.register("printVersionCodeAndName") {
 }
 
 dependencies {
-    implementation("androidx.camera:camera-core:1.5.2")
-    implementation("androidx.camera:camera-camera2:1.5.2")
-    implementation("androidx.camera:camera-lifecycle:1.5.2")
-    implementation("androidx.camera:camera-view:1.5.2")
-    implementation("androidx.concurrent:concurrent-futures-ktx:1.3.0")
-    implementation("com.google.guava:guava:33.5.0-android")
-    implementation("androidx.health.connect:connect-client:1.1.0")
-    implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
-    implementation("com.google.android.material:material:1.13.0")
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.androidx.concurrent.futures.ktx)
+    implementation(libs.guava)
+    implementation(libs.androidx.connect.client)
+    implementation(libs.coil.compose)
+    implementation(libs.generativeai)
+    implementation(libs.material)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.foundation.layout)
@@ -144,8 +144,8 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
 
     // Pager
-    implementation("com.google.accompanist:accompanist-pager:0.28.0")
-    implementation("com.google.accompanist:accompanist-pager-indicators:0.28.0")
+    implementation(libs.accompanist.pager)
+    implementation(libs.accompanist.pager.indicators)
 
     // ** Hilt (Dependency Injection) **
     implementation(libs.hilt.android)

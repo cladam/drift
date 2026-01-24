@@ -56,6 +56,7 @@ import com.ilseon.drift.ui.components.SleepTrendWithInsightCard
 import com.ilseon.drift.ui.components.TrendSparklineCard
 import com.ilseon.drift.ui.theme.CustomTextSecondary
 import com.ilseon.drift.ui.theme.DarkGrey
+import com.ilseon.drift.ui.components.HelpIconWithModal
 import com.ilseon.drift.ui.theme.LightGrey
 import com.ilseon.drift.ui.theme.MutedTeal
 import com.ilseon.drift.ui.theme.StatusHigh
@@ -353,37 +354,6 @@ private fun HourlyActivityChart(hourlyCounts: Map<Int, Int>) {
     }
 }
 
-@Composable
-private fun HelpIconWithModal(
-    title: String,
-    content: @Composable () -> Unit
-) {
-    var showDialog by remember { mutableStateOf(false) }
-
-    IconButton(onClick = { showDialog = true }, modifier = Modifier.size(24.dp)) {
-        Icon(
-            imageVector = Icons.Outlined.HelpOutline,
-            contentDescription = "Learn more",
-            tint = CustomTextSecondary
-        )
-    }
-
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text(text = title) },
-            text = content,
-            confirmButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("GOT IT")
-                }
-            },
-            containerColor = LightGrey, // Match card color
-            titleContentColor = MaterialTheme.colorScheme.onSurface,
-            textContentColor = CustomTextSecondary
-        )
-    }
-}
 
 @Composable
 private fun HrvByEnergyCard(allLogs: List<DriftLog>) {

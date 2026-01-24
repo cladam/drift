@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ilseon.drift.ui.theme.CustomTextSecondary
 import com.ilseon.drift.ui.theme.LightGrey
@@ -114,6 +115,35 @@ private fun calculateReadinessScore(
 private fun ReadinessScore(score: Int, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         Text("Readiness Score", style = MaterialTheme.typography.labelMedium, color = CustomTextSecondary)
+//        Spacer(Modifier.width(4.dp))
+//        HelpIconWithModal(
+//            title = "About Your Readiness Score",
+//            content = {
+//                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+//                    Text(
+//                        "Your Readiness Score is a holistic measure of your body's recovery and preparedness for the day.",
+//                        style = MaterialTheme.typography.bodyMedium
+//                    )
+//                    Text(
+//                        "It's calculated based on:",
+//                        style = MaterialTheme.typography.bodyMedium,
+//                        fontWeight = FontWeight.Bold
+//                    )
+//                    Text(
+//                        "• HRV Balance: Your current HRV compared to your long-term baseline. It shows your physiological stress.",
+//                        style = MaterialTheme.typography.bodyMedium
+//                    )
+//                    Text(
+//                        "• Sleep Balance: Your recent sleep duration compared to your own average. It reflects your sleep consistency.",
+//                        style = MaterialTheme.typography.bodyMedium
+//                    )
+//                    Text(
+//                        "• System Stability: The day-to-day variation of your HRV. High stability (low variation) is a sign of resilience.",
+//                        style = MaterialTheme.typography.bodyMedium
+//                    )
+//                }
+//            }
+//        )
         Text(score.toString(), style = MaterialTheme.typography.displayLarge, color = color)
     }
 }
