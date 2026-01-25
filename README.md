@@ -1,4 +1,15 @@
-# Drift
+<p align="center">
+    <img src="images/Drift-FG3.png" alt="Drift feature graphic" width="640" height="352">
+    <br><br>
+    <a href='https://play.google.com/store/apps/details?id=com.ilseon.drift'><img alt='Get it on Google Play' src='images/playstore.png' height="55"/></a>
+</p>
+
+<h1 align="center">Drift</h1>
+
+<p align="center">
+    <strong>A biometric health intelligence tool built for stillness and self-regulation.</strong>
+</p>
+
 
 **Drift** is a health intelligence tool built for stillness and self-regulation. 
 As part of the **[ilseon](https://github.com/cladam/ilseon)** ecosystem, Drift translates the body’s quiet signals into a visual language that remains intuitive even during periods of high cognitive load.
